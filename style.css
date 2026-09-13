@@ -10,9 +10,6 @@ body {
     overflow: hidden;
     user-select: none;
 }
-/* =========================
-   JUEGO
-========================= */
 #game {
     width: 100vw;
     height: 100vh;
@@ -20,28 +17,21 @@ body {
     overflow: hidden;
 }
 /* =========================
-   VENTANA DEL MAPA
+   MAPA
 ========================= */
 #map-viewport {
     position: absolute;
     inset: 0;
     overflow: hidden;
     background: #20291d;
-    cursor: default;
 }
-/* =========================
-   MUNDO
-========================= */
 #world {
     position: absolute;
     width: 4000px;
     height: 2400px;
     transform-origin: 0 0;
-    transition: transform 0.1s linear;
+    will-change: transform;
 }
-/* =========================
-   MAPA
-========================= */
 #map {
     position: absolute;
     width: 4000px;
@@ -59,7 +49,6 @@ body {
         );
     background-size: 40px 40px;
 }
-/* Algunas variaciones del terreno */
 #map::before {
     content: "";
     position: absolute;
@@ -83,6 +72,66 @@ body {
     pointer-events: none;
 }
 /* =========================
+   ÁRBOLES
+========================= */
+.tree {
+    position: absolute;
+    width: 54px;
+    height: 70px;
+    transform: translate(-50%, -50%);
+    z-index: 4;
+    pointer-events: none;
+}
+.tree-shadow {
+    position: absolute;
+    width: 42px;
+    height: 12px;
+    left: 6px;
+    bottom: 0;
+    background: rgba(0,0,0,0.25);
+    border-radius: 50%;
+}
+.tree-trunk {
+    position: absolute;
+    width: 13px;
+    height: 31px;
+    left: 21px;
+    bottom: 7px;
+    background: #65452b;
+    border: 2px solid #44301f;
+    border-radius: 4px;
+}
+.tree-crown {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    left: 3px;
+    top: 2px;
+    background: #31582d;
+    border: 2px solid #263f24;
+    border-radius: 50%;
+}
+.tree-crown::before {
+    content: "";
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: -7px;
+    top: 11px;
+    background: #3f6b35;
+    border-radius: 50%;
+}
+.tree-crown::after {
+    content: "";
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    right: -7px;
+    top: 8px;
+    background: #284b27;
+    border-radius: 50%;
+}
+/* =========================
    COLONO
 ========================= */
 #colonist {
@@ -92,11 +141,8 @@ body {
     transform: translate(-50%, -50%);
     z-index: 10;
     cursor: pointer;
-    transition:
-        left 0.05s linear,
-        top 0.05s linear;
+    pointer-events: auto;
 }
-/* Cabeza */
 .npc-head {
     position: absolute;
     width: 18px;
@@ -108,7 +154,6 @@ body {
     border-radius: 50%;
     z-index: 3;
 }
-/* Pelo */
 .npc-hair {
     position: absolute;
     width: 18px;
@@ -119,7 +164,6 @@ body {
     border-radius: 10px 10px 3px 3px;
     z-index: 4;
 }
-/* Cuerpo */
 .npc-body {
     position: absolute;
     width: 22px;
@@ -131,7 +175,6 @@ body {
     border-radius: 6px 6px 4px 4px;
     z-index: 2;
 }
-/* Brazo izquierdo */
 .npc-arm-left,
 .npc-arm-right {
     position: absolute;
@@ -151,7 +194,6 @@ body {
     right: 2px;
     transform: rotate(-8deg);
 }
-/* Piernas */
 .npc-leg-left,
 .npc-leg-right {
     position: absolute;
@@ -167,7 +209,6 @@ body {
 .npc-leg-right {
     right: 7px;
 }
-/* Sombra */
 .npc-shadow {
     position: absolute;
     width: 30px;
@@ -277,20 +318,18 @@ body {
 #colonist-menu {
     position: fixed;
     width: 290px;
-    max-height: calc(100vh - 30px);
+    max-height: calc(100vh - 20px);
     overflow-y: auto;
     padding: 17px;
-    background: rgba(22,22,22,0.97);
+    background: rgba(22,22,22,0.98);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 12px;
     box-shadow: 0 10px 35px rgba(0,0,0,0.5);
-    z-index: 100;
-    transition: left 0.12s ease, top 0.12s ease;
+    z-index: 1000;
 }
 .hidden {
     display: none !important;
 }
-/* Cabecera */
 .colonist-header {
     display: flex;
     align-items: center;
@@ -306,7 +345,6 @@ body {
     font-size: 12px;
     margin-top: 4px;
 }
-/* Avatar */
 #menu-avatar {
     width: 42px;
     height: 42px;
@@ -325,7 +363,6 @@ body {
     border: 2px solid #555;
     border-radius: 50%;
 }
-/* Secciones */
 .menu-section {
     padding: 13px 0;
     border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -341,7 +378,6 @@ body {
     font-size: 13px;
     line-height: 1.45;
 }
-/* Salud */
 .stat-row {
     display: grid;
     grid-template-columns: 45px 1fr 28px;
@@ -360,7 +396,6 @@ body {
     height: 100%;
     background: #65a65d;
 }
-/* Habilidades */
 .skill {
     display: flex;
     align-items: center;
@@ -372,7 +407,6 @@ body {
     color: #d5b65c;
     font-weight: bold;
 }
-/* Características */
 .trait {
     display: inline-block;
     padding: 4px 7px;
@@ -381,7 +415,6 @@ body {
     border-radius: 5px;
     font-size: 11px;
 }
-/* Acciones */
 .menu-actions {
     display: flex;
     gap: 7px;
@@ -406,7 +439,7 @@ body {
     background: #668251;
 }
 /* =========================
-   MODO MOVER
+   MOVER
 ========================= */
 #move-mode {
     position: fixed;
@@ -417,7 +450,7 @@ body {
     background: rgba(25,25,25,0.96);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 8px;
-    z-index: 200;
+    z-index: 2000;
     font-size: 13px;
 }
 #cancel-move {
@@ -429,9 +462,6 @@ body {
     color: white;
     cursor: pointer;
 }
-/* =========================
-   DESTINO DEL COLONO
-========================= */
 .move-marker {
     position: absolute;
     width: 18px;
@@ -446,7 +476,7 @@ body {
     z-index: 8;
 }
 /* =========================
-   RESPONSIVE
+   MÓVIL
 ========================= */
 @media (max-width: 600px) {
     #top-info {
