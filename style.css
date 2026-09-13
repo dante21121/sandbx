@@ -3,109 +3,472 @@
     margin: 0;
     padding: 0;
 }
-
 body {
     background: #111;
     color: white;
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     overflow: hidden;
+    user-select: none;
 }
-
+/* =========================
+   JUEGO
+========================= */
 #game {
     width: 100vw;
     height: 100vh;
     position: relative;
     overflow: hidden;
 }
-
+/* =========================
+   VENTANA DEL MAPA
+========================= */
+#map-viewport {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: #20291d;
+    cursor: default;
+}
+/* =========================
+   MUNDO
+========================= */
+#world {
+    position: absolute;
+    width: 4000px;
+    height: 2400px;
+    transform-origin: 0 0;
+    transition: transform 0.1s linear;
+}
+/* =========================
+   MAPA
+========================= */
 #map {
-    width: 100%;
-    height: 100%;
-
-    background-color: #536b3d;
-
+    position: absolute;
+    width: 4000px;
+    height: 2400px;
+    background-color: #536d3c;
     background-image:
-        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-
+        linear-gradient(
+            rgba(255,255,255,0.035) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.035) 1px,
+            transparent 1px
+        );
     background-size: 40px 40px;
 }
-
+/* Algunas variaciones del terreno */
+#map::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            circle at 20% 30%,
+            rgba(70,90,45,0.4),
+            transparent 20%
+        ),
+        radial-gradient(
+            circle at 75% 65%,
+            rgba(40,80,45,0.3),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 50% 90%,
+            rgba(100,80,45,0.15),
+            transparent 20%
+        );
+    pointer-events: none;
+}
+/* =========================
+   COLONO
+========================= */
 #colonist {
     position: absolute;
-
-    width: 28px;
-    height: 28px;
-
-    background: #e8c547;
-
-    border: 3px solid #222;
-    border-radius: 50%;
-
+    width: 34px;
+    height: 48px;
     transform: translate(-50%, -50%);
-
+    z-index: 10;
     cursor: pointer;
-
-    z-index: 5;
+    transition:
+        left 0.05s linear,
+        top 0.05s linear;
 }
-
-#colony-ui {
+/* Cabeza */
+.npc-head {
     position: absolute;
-
+    width: 18px;
+    height: 18px;
+    left: 8px;
+    top: 0;
+    background: #e0a16b;
+    border: 2px solid #292018;
+    border-radius: 50%;
+    z-index: 3;
+}
+/* Pelo */
+.npc-hair {
+    position: absolute;
+    width: 18px;
+    height: 8px;
+    left: 8px;
+    top: 0;
+    background: #392b20;
+    border-radius: 10px 10px 3px 3px;
+    z-index: 4;
+}
+/* Cuerpo */
+.npc-body {
+    position: absolute;
+    width: 22px;
+    height: 21px;
+    left: 6px;
+    top: 17px;
+    background: #596d91;
+    border: 2px solid #252936;
+    border-radius: 6px 6px 4px 4px;
+    z-index: 2;
+}
+/* Brazo izquierdo */
+.npc-arm-left,
+.npc-arm-right {
+    position: absolute;
+    width: 6px;
+    height: 18px;
+    top: 19px;
+    background: #e0a16b;
+    border: 1px solid #292018;
+    border-radius: 5px;
+    z-index: 1;
+}
+.npc-arm-left {
+    left: 2px;
+    transform: rotate(8deg);
+}
+.npc-arm-right {
+    right: 2px;
+    transform: rotate(-8deg);
+}
+/* Piernas */
+.npc-leg-left,
+.npc-leg-right {
+    position: absolute;
+    width: 8px;
+    height: 14px;
+    top: 37px;
+    background: #30343c;
+    border-radius: 3px;
+}
+.npc-leg-left {
+    left: 7px;
+}
+.npc-leg-right {
+    right: 7px;
+}
+/* Sombra */
+.npc-shadow {
+    position: absolute;
+    width: 30px;
+    height: 8px;
+    left: 2px;
+    bottom: -2px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    z-index: -1;
+}
+/* =========================
+   INFORMACIÓN SUPERIOR
+========================= */
+#top-info {
+    position: absolute;
     top: 15px;
     left: 15px;
-
-    padding: 15px 20px;
-
-    background: rgba(20, 20, 20, 0.85);
-
+    min-width: 190px;
+    padding: 13px 17px;
+    background: rgba(18,18,18,0.9);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
-
-    z-index: 10;
+    z-index: 30;
+    font-size: 14px;
 }
-
-#colony-ui h2 {
+.colony-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: bold;
     margin-bottom: 8px;
 }
-
-#colonist-menu {
+.title-icon {
+    color: #d6ad55;
+}
+/* =========================
+   INFORMACIÓN INFERIOR
+========================= */
+#colony-info {
     position: absolute;
-
-    min-width: 180px;
-
-    padding: 15px;
-
-    background: rgba(20, 20, 20, 0.95);
-
-    border: 1px solid #555;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px;
+    background: rgba(18,18,18,0.94);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
-
-    z-index: 20;
+    z-index: 30;
 }
-
-#colonist-menu h3 {
-    margin-bottom: 12px;
+.info-item {
+    min-width: 105px;
+    padding: 5px 12px;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    font-size: 14px;
 }
-
-#colonist-menu button {
-    width: 100%;
-
-    padding: 9px;
-    margin-top: 6px;
-
+.info-item:last-child {
+    border-right: none;
+}
+.info-label {
+    display: block;
+    color: #999;
+    font-size: 10px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+/* =========================
+   ZOOM
+========================= */
+#zoom-controls {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    display: flex;
+    align-items: center;
+    background: rgba(18,18,18,0.94);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 9px;
+    overflow: hidden;
+    z-index: 30;
+}
+#zoom-controls button {
+    width: 40px;
+    height: 40px;
     border: none;
-    border-radius: 6px;
-
-    background: #3d3d3d;
+    background: transparent;
     color: white;
-
+    font-size: 23px;
     cursor: pointer;
 }
-
-#colonist-menu button:hover {
+#zoom-controls button:hover {
+    background: rgba(255,255,255,0.1);
+}
+#zoom-level {
+    min-width: 55px;
+    text-align: center;
+    font-size: 12px;
+    color: #bbb;
+}
+/* =========================
+   MENÚ DEL COLONO
+========================= */
+#colonist-menu {
+    position: fixed;
+    width: 290px;
+    max-height: calc(100vh - 30px);
+    overflow-y: auto;
+    padding: 17px;
+    background: rgba(22,22,22,0.97);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+    z-index: 100;
+    transition: left 0.12s ease, top 0.12s ease;
+}
+.hidden {
+    display: none !important;
+}
+/* Cabecera */
+.colonist-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.colonist-header h2 {
+    font-size: 18px;
+}
+.colonist-header p {
+    color: #999;
+    font-size: 12px;
+    margin-top: 4px;
+}
+/* Avatar */
+#menu-avatar {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    background:
+        radial-gradient(
+            circle at 50% 30%,
+            #e0a16b 0 20%,
+            transparent 21%
+        ),
+        linear-gradient(
+            #392b20 0 25%,
+            #596d91 26% 70%,
+            #30343c 71%
+        );
+    border: 2px solid #555;
+    border-radius: 50%;
+}
+/* Secciones */
+.menu-section {
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.menu-section h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 9px;
+}
+.menu-section p {
+    color: #ddd;
+    font-size: 13px;
+    line-height: 1.45;
+}
+/* Salud */
+.stat-row {
+    display: grid;
+    grid-template-columns: 45px 1fr 28px;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+.stat-bar {
+    height: 7px;
+    background: #3b3b3b;
+    border-radius: 5px;
+    overflow: hidden;
+}
+#health-bar {
+    width: 100%;
+    height: 100%;
+    background: #65a65d;
+}
+/* Habilidades */
+.skill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 13px;
+}
+.skill-value {
+    color: #d5b65c;
+    font-weight: bold;
+}
+/* Características */
+.trait {
+    display: inline-block;
+    padding: 4px 7px;
+    margin: 2px;
+    background: #303030;
+    border-radius: 5px;
+    font-size: 11px;
+}
+/* Acciones */
+.menu-actions {
+    display: flex;
+    gap: 7px;
+    padding-top: 13px;
+}
+.menu-actions button {
+    flex: 1;
+    padding: 9px;
+    border: none;
+    border-radius: 6px;
+    background: #3d3d3d;
+    color: white;
+    cursor: pointer;
+}
+.menu-actions button:hover {
     background: #555;
 }
-
-.hidden {
-    display: none;
+#move-button {
+    background: #566d43;
+}
+#move-button:hover {
+    background: #668251;
+}
+/* =========================
+   MODO MOVER
+========================= */
+#move-mode {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 15px;
+    background: rgba(25,25,25,0.96);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    z-index: 200;
+    font-size: 13px;
+}
+#cancel-move {
+    margin-left: 12px;
+    padding: 5px 8px;
+    border: none;
+    border-radius: 5px;
+    background: #5a3838;
+    color: white;
+    cursor: pointer;
+}
+/* =========================
+   DESTINO DEL COLONO
+========================= */
+.move-marker {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    transform: translate(-50%, -50%);
+    border: 2px solid white;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    box-shadow:
+        0 0 0 4px rgba(255,255,255,0.1);
+    pointer-events: none;
+    z-index: 8;
+}
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 600px) {
+    #top-info {
+        top: 10px;
+        left: 10px;
+        padding: 10px 12px;
+    }
+    #colony-info {
+        bottom: 10px;
+        width: calc(100% - 20px);
+        justify-content: center;
+    }
+    .info-item {
+        min-width: 0;
+        flex: 1;
+        padding: 5px;
+    }
+    #zoom-controls {
+        right: 10px;
+        bottom: 75px;
+    }
+    #colonist-menu {
+        width: min(290px, calc(100vw - 20px));
+    }
 }
