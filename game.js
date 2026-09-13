@@ -1,795 +1,1215 @@
-const TILE_SIZE = 40;
-const WORLD_WIDTH = 100;
-const WORLD_HEIGHT = 60;
-/* =========================
-   ELEMENTOS
-========================= */
-const mapViewport = document.getElementById("map-viewport");
+const viewport = document.getElementById("map-viewport");
 const world = document.getElementById("world");
 const map = document.getElementById("map");
-const menu = document.getElementById("colonist-menu");
-const moveButton = document.getElementById("move-button");
-const waitButton = document.getElementById("wait-button");
+
+const colonistCard = document.getElementById("colonist-card");
+const cardAvatar = document.getElementById("card-avatar");
+
+const actionMenu = document.getElementById("action-menu");
+const actionLocationName = document.getElementById("action-location-name");
+
+const colonistMenu = document.getElementById("colonist-menu");
+
 const moveMode = document.getElementById("move-mode");
-const cancelMoveButton = document.getElementById("cancel-move");
-const zoomInButton = document.getElementById("zoom-in");
-const zoomOutButton = document.getElementById("zoom-out");
+const cancelMove = document.getElementById("cancel-move");
+
+const zoomIn = document.getElementById("zoom-in");
+const zoomOut = document.getElementById("zoom-out");
 const zoomLevel = document.getElementById("zoom-level");
-const colonyDaysElement = document.getElementById("colony-days");
-const colonyTimeElement = document.getElementById("colony-time");
-const colonyYearDayElement = document.getElementById("colony-year-day");
-const colonistCountElement = document.getElementById("colonist-count");
-const menuName = document.getElementById("menu-name");
-const menuBasicInfo = document.getElementById("menu-basic-info");
-const menuDescription = document.getElementById("menu-description");
-const healthBar = document.getElementById("health-bar");
-const healthValue = document.getElementById("health-value");
-const skillsContainer = document.getElementById("skills-container");
-const traitsContainer = document.getElementById("traits-container");
+
+
 /* =========================
-   CÁMARA
+   CONFIGURACIÓN
 ========================= */
+
+const TILE_SIZE = 40;
+
+const WORLD_WIDTH = 100;
+const WORLD_HEIGHT = 60;
+
 let zoom = 1;
-const MIN_ZOOM = 0.5;
-const MAX_ZOOM = 2;
-const ZOOM_STEP = 0.1;
+
 let cameraX = 0;
 let cameraY = 0;
-/* =========================
-   TIEMPO
-========================= */
-const colony = {
-    day: 1,
-    yearDay: 1,
-    hour: 6,
-    minute: 0
-};
-const GAME_MINUTES_PER_SECOND = 5;
+
+let selectedColonist = false;
+let movingMode = false;
+
+let moveTarget = null;
+let autonomousTarget = null;
+
+let waitUntil = 0;
+
 let lastTime = performance.now();
+
+
+/* =========================
+   COLONIA
+========================= */
+
+const colony = {
+
+    day: 1,
+
+    yearDay: 1,
+
+    hour: 6,
+
+    minute: 0
+
+};
+
+
 /* =========================
    COLONO
 ========================= */
+
 const colonist = {
-    id: 1,
+
     name: "Elias",
+
     age: 27,
-    sex: "Hombre",
-    description:
-        "Elias creció en una pequeña comunidad rural. " +
-        "Está acostumbrado a trabajar con sus manos " +
-        "y prefiere mantenerse ocupado.",
+
+    gender: "Hombre",
+
+    x: 50 * TILE_SIZE,
+
+    y: 30 * TILE_SIZE,
+
+    speed: 80,
+
     health: 100,
+
+    description:
+        "Elias es un colono tranquilo y trabajador. Tiene experiencia con tareas manuales y una buena resistencia física.",
+
     skills: {
-        agricultura: 7,
-        construccion: 5,
-        cocina: 3,
-        medicina: 2,
-        investigacion: 1,
-        artesania: 6
+
+        Agricultura: 7,
+
+        Construcción: 5,
+
+        Cocina: 3,
+
+        Medicina: 2,
+
+        Investigación: 1,
+
+        Artesanía: 6
+
     },
+
     traits: [
+
         "Trabajador",
+
         "Resistente",
+
         "Curioso"
-    ],
-    x: 50,
-    y: 30,
-    targetX: 50,
-    targetY: 30,
-    speed: 0.035,
-    moving: true,
-    waiting: false,
-    playerOrdered: false
+
+    ]
+
 };
+
+
 /* =========================
-   COLONO VISUAL
+   CREAR NPC
 ========================= */
-const colonistElement =
-    document.createElement("div");
-colonistElement.id = "colonist";
-colonistElement.innerHTML = `
-    <div class="npc-shadow"></div>
-    <div class="npc-head"></div>
-    <div class="npc-hair"></div>
-    <div class="npc-arm-left"></div>
-    <div class="npc-arm-right"></div>
-    <div class="npc-body"></div>
-    <div class="npc-leg-left"></div>
-    <div class="npc-leg-right"></div>
-`;
-world.appendChild(colonistElement);
-/* =========================
-   ÁRBOLES
-========================= */
-function createTrees() {
-    const treeCount = 90;
-    for (let i = 0; i < treeCount; i++) {
-        const tree =
-            document.createElement("div");
-        tree.className = "tree";
-        const x =
-            3 +
-            Math.random() *
-            (WORLD_WIDTH - 6);
-        const y =
-            3 +
-            Math.random() *
-            (WORLD_HEIGHT - 6);
-        /*
-           Evitar demasiados árboles
-           cerca del colono inicial.
-        */
-        const distance =
-            Math.sqrt(
-                Math.pow(x - colonist.x, 2) +
-                Math.pow(y - colonist.y, 2)
-            );
-        if (distance < 8) {
-            i--;
-            continue;
-        }
-        tree.style.left =
-            `${x * TILE_SIZE}px`;
-        tree.style.top =
-            `${y * TILE_SIZE}px`;
-        tree.innerHTML = `
-            <div class="tree-shadow"></div>
-            <div class="tree-trunk"></div>
-            <div class="tree-crown"></div>
-        `;
-        /*
-           Variación de tamaño
-           para que no parezcan copias.
-        */
-        const scale =
-            0.8 +
-            Math.random() * 0.45;
-        tree.style.transform =
-            `translate(-50%, -50%) scale(${scale})`;
-        world.appendChild(tree);
-    }
+
+function createColonist() {
+
+    const npc = document.createElement("div");
+
+    npc.id = "colonist";
+
+    npc.innerHTML = `
+
+        <div class="npc-shadow"></div>
+
+        <div class="npc-head"></div>
+
+        <div class="npc-hair"></div>
+
+        <div class="npc-body"></div>
+
+        <div class="npc-arm-left"></div>
+
+        <div class="npc-arm-right"></div>
+
+        <div class="npc-leg-left"></div>
+
+        <div class="npc-leg-right"></div>
+
+    `;
+
+    world.appendChild(npc);
+
+    return npc;
 }
+
+const colonistElement = createColonist();
+
+
 /* =========================
-   POSICIÓN COLONO
+   AVATAR
 ========================= */
+
+function createAvatar(element) {
+
+    element.innerHTML = `
+
+        <div class="npc-head"></div>
+
+        <div class="npc-hair"></div>
+
+        <div class="npc-body"></div>
+
+    `;
+}
+
+createAvatar(cardAvatar);
+
+createAvatar(document.getElementById("menu-avatar"));
+
+
+/* =========================
+   POSICIÓN NPC
+========================= */
+
 function updateColonistPosition() {
+
     colonistElement.style.left =
-        `${colonist.x * TILE_SIZE}px`;
+        colonist.x + "px";
+
     colonistElement.style.top =
-        `${colonist.y * TILE_SIZE}px`;
+        colonist.y + "px";
 }
+
+
 /* =========================
-   CÁMARA
+   SELECCIÓN
 ========================= */
-function updateWorldTransform() {
-    world.style.transform =
-        `translate3d(${cameraX}px, ${cameraY}px, 0) scale(${zoom})`;
+
+function selectColonist() {
+
+    selectedColonist = true;
+
+    colonistElement.classList.add("selected");
+
+    colonistCard.classList.add("selected");
+
+    closeActionMenu();
+
+    closeColonistMenu();
 }
-function centerCameraOnColonist() {
-    cameraX =
-        mapViewport.clientWidth / 2 -
-        colonist.x * TILE_SIZE * zoom;
-    cameraY =
-        mapViewport.clientHeight / 2 -
-        colonist.y * TILE_SIZE * zoom;
-    updateWorldTransform();
-}
+
+
 /* =========================
-   ZOOM CORRECTO
+   CLICK EN TARJETA
 ========================= */
-function changeZoom(newZoom, mouseX = null, mouseY = null) {
-    const oldZoom = zoom;
-    const nextZoom =
-        Math.max(
-            MIN_ZOOM,
-            Math.min(
-                MAX_ZOOM,
-                newZoom
-            )
-        );
-    if (nextZoom === oldZoom) {
-        return;
-    }
-    /*
-       Si tenemos una posición del mouse,
-       hacemos zoom manteniendo exactamente
-       ese punto del mapa debajo del cursor.
-    */
-    if (
-        mouseX !== null &&
-        mouseY !== null
-    ) {
-        const worldPointX =
-            (mouseX - cameraX) / oldZoom;
-        const worldPointY =
-            (mouseY - cameraY) / oldZoom;
-        zoom = nextZoom;
-        cameraX =
-            mouseX -
-            worldPointX * zoom;
-        cameraY =
-            mouseY -
-            worldPointY * zoom;
-    } else {
-        /*
-           Los botones hacen zoom desde
-           el centro de la pantalla.
-        */
-        const centerX =
-            mapViewport.clientWidth / 2;
-        const centerY =
-            mapViewport.clientHeight / 2;
-        const worldPointX =
-            (centerX - cameraX) / oldZoom;
-        const worldPointY =
-            (centerY - cameraY) / oldZoom;
-        zoom = nextZoom;
-        cameraX =
-            centerX -
-            worldPointX * zoom;
-        cameraY =
-            centerY -
-            worldPointY * zoom;
-    }
-    zoomLevel.textContent =
-        `${Math.round(zoom * 100)}%`;
-    updateWorldTransform();
-    /*
-       Si el menú está abierto,
-       actualizar su posición.
-    */
-    if (!menu.classList.contains("hidden")) {
+
+colonistCard.addEventListener("click", function(event) {
+
+    event.stopPropagation();
+
+    selectColonist();
+
+});
+
+
+/* =========================
+   DOBLE CLICK EN TARJETA
+========================= */
+
+colonistCard.addEventListener("dblclick", function(event) {
+
+    event.stopPropagation();
+
+    selectColonist();
+
+    openColonistMenu();
+
+});
+
+
+/* =========================
+   CLICK NPC
+========================= */
+
+colonistElement.addEventListener("click", function(event) {
+
+    event.stopPropagation();
+
+    selectColonist();
+
+});
+
+
+/* =========================
+   DOBLE CLICK NPC
+========================= */
+
+colonistElement.addEventListener("dblclick", function(event) {
+
+    event.stopPropagation();
+
+    selectColonist();
+
+    openColonistMenu();
+
+});
+
+
+/* =========================
+   FICHA
+========================= */
+
+function openColonistMenu() {
+
+    updateColonistMenu();
+
+    colonistMenu.classList.remove("hidden");
+
+    requestAnimationFrame(() => {
+
         positionColonistMenu();
-    }
+
+    });
 }
-/* =========================
-   BOTONES ZOOM
-========================= */
-zoomInButton.addEventListener(
-    "click",
-    () => {
-        changeZoom(
-            zoom + ZOOM_STEP
-        );
+
+
+function closeColonistMenu() {
+
+    colonistMenu.classList.add("hidden");
+
+}
+
+
+function updateColonistMenu() {
+
+    document.getElementById("menu-name").textContent =
+        colonist.name;
+
+    document.getElementById("menu-basic-info").textContent =
+        `${colonist.age} años · ${colonist.gender}`;
+
+    document.getElementById("menu-description").textContent =
+        colonist.description;
+
+    document.getElementById("health-value").textContent =
+        colonist.health;
+
+    document.getElementById("health-bar").style.width =
+        colonist.health + "%";
+
+
+    const skills =
+        document.getElementById("skills-container");
+
+    skills.innerHTML = "";
+
+
+    for (const skill in colonist.skills) {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "skill-row";
+
+        row.innerHTML = `
+
+            <span>${skill}</span>
+
+            <strong>
+                ${colonist.skills[skill]}
+            </strong>
+
+        `;
+
+        skills.appendChild(row);
+
     }
-);
-zoomOutButton.addEventListener(
-    "click",
-    () => {
-        changeZoom(
-            zoom - ZOOM_STEP
-        );
+
+
+    const traits =
+        document.getElementById("traits-container");
+
+    traits.innerHTML = "";
+
+
+    colonist.traits.forEach(trait => {
+
+        const element =
+            document.createElement("span");
+
+        element.className =
+            "trait";
+
+        element.textContent =
+            trait;
+
+        traits.appendChild(element);
+
+    });
+
+}
+
+
+function positionColonistMenu() {
+
+    const rect =
+        colonistElement.getBoundingClientRect();
+
+    const menuWidth =
+        colonistMenu.offsetWidth;
+
+    const menuHeight =
+        colonistMenu.offsetHeight;
+
+
+    let left =
+        rect.right + 15;
+
+    let top =
+        rect.top;
+
+
+    if (
+        left + menuWidth >
+        window.innerWidth
+    ) {
+
+        left =
+            rect.left -
+            menuWidth -
+            15;
+
     }
-);
+
+
+    if (left < 10) {
+
+        left = 10;
+
+    }
+
+
+    if (
+        top + menuHeight >
+        window.innerHeight
+    ) {
+
+        top =
+            window.innerHeight -
+            menuHeight -
+            10;
+
+    }
+
+
+    if (top < 10) {
+
+        top = 10;
+
+    }
+
+
+    colonistMenu.style.left =
+        left + "px";
+
+    colonistMenu.style.top =
+        top + "px";
+
+}
+
+
 /* =========================
-   RUEDA DEL MOUSE
+   CLICK EN MAPA
 ========================= */
-mapViewport.addEventListener(
-    "wheel",
-    event => {
-        event.preventDefault();
-        const rect =
-            mapViewport.getBoundingClientRect();
-        const mouseX =
-            event.clientX - rect.left;
-        const mouseY =
-            event.clientY - rect.top;
-        if (event.deltaY < 0) {
-            changeZoom(
-                zoom + ZOOM_STEP,
-                mouseX,
-                mouseY
-            );
-        } else {
-            changeZoom(
-                zoom - ZOOM_STEP,
-                mouseX,
-                mouseY
-            );
+
+viewport.addEventListener("click", function(event) {
+
+    if (!selectedColonist) {
+
+        return;
+
+    }
+
+
+    if (movingMode) {
+
+        setMoveTarget(
+            event.clientX,
+            event.clientY
+        );
+
+        return;
+
+    }
+
+
+    if (
+        event.target.closest("#colonist") ||
+        event.target.closest(".tree")
+    ) {
+
+        return;
+
+    }
+
+
+    showActionMenu(
+        event.clientX,
+        event.clientY
+    );
+
+});
+
+
+/* =========================
+   MENÚ ACCIONES
+========================= */
+
+function showActionMenu(x, y) {
+
+    actionLocationName.textContent =
+        "Suelo";
+
+    actionMenu.classList.remove("hidden");
+
+
+    let left =
+        x + 12;
+
+    let top =
+        y + 12;
+
+
+    requestAnimationFrame(() => {
+
+        const width =
+            actionMenu.offsetWidth;
+
+        const height =
+            actionMenu.offsetHeight;
+
+
+        if (
+            left + width >
+            window.innerWidth
+        ) {
+
+            left =
+                x - width - 12;
+
         }
-    },
-    {
-        passive: false
-    }
-);
-/* =========================
-   DESTINO ALEATORIO
-========================= */
-function chooseRandomTarget() {
-    const margin = 5;
-    colonist.targetX =
-        margin +
-        Math.random() *
-        (WORLD_WIDTH - margin * 2);
-    colonist.targetY =
-        margin +
-        Math.random() *
-        (WORLD_HEIGHT - margin * 2);
+
+
+        if (
+            top + height >
+            window.innerHeight
+        ) {
+
+            top =
+                y - height - 12;
+
+        }
+
+
+        left =
+            Math.max(8, left);
+
+        top =
+            Math.max(8, top);
+
+
+        actionMenu.style.left =
+            left + "px";
+
+        actionMenu.style.top =
+            top + "px";
+
+    });
+
 }
+
+
+function closeActionMenu() {
+
+    actionMenu.classList.add("hidden");
+
+}
+
+
+/* =========================
+   ACCIONES
+========================= */
+
+document.querySelectorAll(".action-button")
+    .forEach(button => {
+
+        button.addEventListener("click", function(event) {
+
+            event.stopPropagation();
+
+            const action =
+                button.dataset.action;
+
+
+            if (action === "move") {
+
+                startMoveMode();
+
+            }
+
+
+            if (action === "inspect") {
+
+                console.log(
+                    "Inspeccionando el lugar..."
+                );
+
+                closeActionMenu();
+
+            }
+
+
+            if (action === "wait") {
+
+                waitUntil =
+                    performance.now() + 5000;
+
+                moveTarget = null;
+
+                autonomousTarget = null;
+
+                closeActionMenu();
+
+            }
+
+        });
+
+    });
+
+
+/* =========================
+   MOVER
+========================= */
+
+function startMoveMode() {
+
+    movingMode = true;
+
+    closeActionMenu();
+
+    moveMode.classList.remove("hidden");
+
+    viewport.style.cursor =
+        "crosshair";
+
+}
+
+
+cancelMove.addEventListener("click", function(event) {
+
+    event.stopPropagation();
+
+    movingMode = false;
+
+    moveMode.classList.add("hidden");
+
+    viewport.style.cursor =
+        "default";
+
+});
+
+
+function setMoveTarget(screenX, screenY) {
+
+    const rect =
+        viewport.getBoundingClientRect();
+
+
+    const viewportX =
+        screenX - rect.left;
+
+    const viewportY =
+        screenY - rect.top;
+
+
+    const worldX =
+        (viewportX - cameraX) / zoom;
+
+    const worldY =
+        (viewportY - cameraY) / zoom;
+
+
+    moveTarget = {
+
+        x: Math.max(
+            30,
+            Math.min(
+                WORLD_WIDTH * TILE_SIZE - 30,
+                worldX
+            )
+        ),
+
+        y: Math.max(
+            30,
+            Math.min(
+                WORLD_HEIGHT * TILE_SIZE - 30,
+                worldY
+            )
+        )
+
+    };
+
+
+    autonomousTarget = null;
+
+
+    createMoveMarker(
+        moveTarget.x,
+        moveTarget.y
+    );
+
+
+    movingMode = false;
+
+    moveMode.classList.add("hidden");
+
+    viewport.style.cursor =
+        "default";
+
+}
+
+
+function createMoveMarker(x, y) {
+
+    const old =
+        document.querySelector(".move-marker");
+
+    if (old) {
+
+        old.remove();
+
+    }
+
+
+    const marker =
+        document.createElement("div");
+
+    marker.className =
+        "move-marker";
+
+    marker.style.left =
+        x + "px";
+
+    marker.style.top =
+        y + "px";
+
+
+    world.appendChild(marker);
+
+}
+
+
 /* =========================
    MOVIMIENTO
 ========================= */
-function moveColonist(deltaTime) {
+
+function chooseRandomTarget() {
+
+    autonomousTarget = {
+
+        x:
+            8 * TILE_SIZE +
+            Math.random() *
+            (WORLD_WIDTH - 16) *
+            TILE_SIZE,
+
+        y:
+            8 * TILE_SIZE +
+            Math.random() *
+            (WORLD_HEIGHT - 16) *
+            TILE_SIZE
+
+    };
+
+}
+
+
+function moveColonist(delta) {
+
     if (
-        !colonist.moving ||
-        colonist.waiting
+        performance.now() <
+        waitUntil
     ) {
+
         return;
+
     }
+
+
+    let target =
+        moveTarget ||
+        autonomousTarget;
+
+
+    if (!target) {
+
+        chooseRandomTarget();
+
+        target =
+            autonomousTarget;
+
+    }
+
+
     const dx =
-        colonist.targetX -
-        colonist.x;
+        target.x - colonist.x;
+
     const dy =
-        colonist.targetY -
-        colonist.y;
+        target.y - colonist.y;
+
+
     const distance =
         Math.sqrt(
             dx * dx +
             dy * dy
         );
-    if (distance < 0.05) {
-        colonist.x =
-            colonist.targetX;
-        colonist.y =
-            colonist.targetY;
-        updateColonistPosition();
-        if (colonist.playerOrdered) {
-            colonist.moving = false;
-            colonist.playerOrdered = false;
-            return;
+
+
+    if (distance < 5) {
+
+        if (moveTarget) {
+
+            moveTarget = null;
+
+
+            const marker =
+                document.querySelector(
+                    ".move-marker"
+                );
+
+            if (marker) {
+
+                marker.remove();
+
+            }
+
+        } else {
+
+            autonomousTarget = null;
+
         }
-        chooseRandomTarget();
+
         return;
+
     }
-    const movement =
-        colonist.speed *
-        deltaTime;
+
+
     colonist.x +=
         (dx / distance) *
-        movement;
+        colonist.speed *
+        delta;
+
     colonist.y +=
         (dy / distance) *
-        movement;
-    updateColonistPosition();
+        colonist.speed *
+        delta;
+
 }
+
+
 /* =========================
-   MENÚ DEL COLONO
+   CÁMARA
 ========================= */
-function updateColonistMenu() {
-    menuName.textContent =
-        colonist.name;
-    menuBasicInfo.textContent =
-        `${colonist.age} años · ${colonist.sex}`;
-    menuDescription.textContent =
-        colonist.description;
-    healthValue.textContent =
-        colonist.health;
-    healthBar.style.width =
-        `${colonist.health}%`;
-    skillsContainer.innerHTML = "";
-    for (const skill in colonist.skills) {
-        const skillElement =
+
+function updateWorldTransform() {
+
+    world.style.transform =
+        `translate3d(
+            ${cameraX}px,
+            ${cameraY}px,
+            0
+        ) scale(${zoom})`;
+
+}
+
+
+function centerCameraOnColonist() {
+
+    cameraX =
+        viewport.clientWidth / 2 -
+        colonist.x * zoom;
+
+    cameraY =
+        viewport.clientHeight / 2 -
+        colonist.y * zoom;
+
+
+    updateWorldTransform();
+
+}
+
+
+/* =========================
+   ZOOM
+========================= */
+
+function changeZoom(
+    newZoom,
+    mouseX,
+    mouseY
+) {
+
+    const oldZoom =
+        zoom;
+
+
+    newZoom =
+        Math.max(
+            .5,
+            Math.min(2, newZoom)
+        );
+
+
+    if (newZoom === oldZoom) {
+
+        return;
+
+    }
+
+
+    const rect =
+        viewport.getBoundingClientRect();
+
+
+    const screenX =
+        mouseX - rect.left;
+
+    const screenY =
+        mouseY - rect.top;
+
+
+    const worldX =
+        (screenX - cameraX) /
+        oldZoom;
+
+    const worldY =
+        (screenY - cameraY) /
+        oldZoom;
+
+
+    zoom =
+        newZoom;
+
+
+    cameraX =
+        screenX -
+        worldX * zoom;
+
+    cameraY =
+        screenY -
+        worldY * zoom;
+
+
+    updateWorldTransform();
+
+
+    zoomLevel.textContent =
+        Math.round(zoom * 100) + "%";
+
+}
+
+
+zoomIn.addEventListener("click", function() {
+
+    changeZoom(
+        zoom + .1,
+        window.innerWidth / 2,
+        window.innerHeight / 2
+    );
+
+});
+
+
+zoomOut.addEventListener("click", function() {
+
+    changeZoom(
+        zoom - .1,
+        window.innerWidth / 2,
+        window.innerHeight / 2
+    );
+
+});
+
+
+viewport.addEventListener(
+    "wheel",
+    function(event) {
+
+        event.preventDefault();
+
+
+        const amount =
+            event.deltaY > 0
+                ? -.1
+                : .1;
+
+
+        changeZoom(
+            zoom + amount,
+            event.clientX,
+            event.clientY
+        );
+
+    },
+    { passive: false }
+);
+
+
+/* =========================
+   ÁRBOLES
+========================= */
+
+function createTrees() {
+
+    const treeCount = 90;
+
+
+    for (
+        let i = 0;
+        i < treeCount;
+        i++
+    ) {
+
+        let x;
+        let y;
+
+
+        do {
+
+            x =
+                Math.random() *
+                WORLD_WIDTH *
+                TILE_SIZE;
+
+            y =
+                Math.random() *
+                WORLD_HEIGHT *
+                TILE_SIZE;
+
+
+        } while (
+
+            Math.abs(
+                x - colonist.x
+            ) < 8 * TILE_SIZE &&
+
+            Math.abs(
+                y - colonist.y
+            ) < 8 * TILE_SIZE
+
+        );
+
+
+        const tree =
             document.createElement("div");
-        skillElement.className =
-            "skill";
-        skillElement.innerHTML = `
-            <span>${capitalize(skill)}</span>
-            <span class="skill-value">
-                ${colonist.skills[skill]}
-            </span>
+
+
+        tree.className =
+            "tree";
+
+
+        tree.style.left =
+            x + "px";
+
+        tree.style.top =
+            y + "px";
+
+
+        tree.style.transform =
+            `translateX(-50%)
+             scale(
+                ${.8 + Math.random() * .45}
+             )`;
+
+
+        tree.innerHTML = `
+
+            <div class="tree-shadow"></div>
+
+            <div class="tree-trunk"></div>
+
+            <div class="tree-crown"></div>
+
         `;
-        skillsContainer.appendChild(
-            skillElement
-        );
+
+
+        world.appendChild(tree);
+
     }
-    traitsContainer.innerHTML = "";
-    colonist.traits.forEach(
-        trait => {
-            const traitElement =
-                document.createElement("span");
-            traitElement.className =
-                "trait";
-            traitElement.textContent =
-                trait;
-            traitsContainer.appendChild(
-                traitElement
-            );
-        }
-    );
+
 }
-/* =========================
-   ABRIR MENÚ
-========================= */
-colonistElement.addEventListener(
-    "click",
-    event => {
-        event.stopPropagation();
-        if (movingMode) {
-            return;
-        }
-        updateColonistMenu();
-        /*
-           Primero hacemos visible
-           el menú para que el navegador
-           pueda calcular su tamaño.
-        */
-        menu.classList.remove(
-            "hidden"
-        );
-        /*
-           Luego lo posicionamos.
-        */
-        requestAnimationFrame(() => {
-            positionColonistMenu();
-        });
-    }
-);
-/* =========================
-   POSICIONAR MENÚ
-========================= */
-function positionColonistMenu() {
-    const npcRect =
-        colonistElement.getBoundingClientRect();
-    const menuRect =
-        menu.getBoundingClientRect();
-    const margin = 10;
-    let left;
-    let top;
-    /*
-       Intentar derecha.
-    */
-    if (
-        npcRect.right +
-        12 +
-        menuRect.width <=
-        window.innerWidth - margin
-    ) {
-        left =
-            npcRect.right + 12;
-    }
-    /*
-       Si no entra, izquierda.
-    */
-    else if (
-        npcRect.left -
-        12 -
-        menuRect.width >=
-        margin
-    ) {
-        left =
-            npcRect.left -
-            menuRect.width -
-            12;
-    }
-    /*
-       Si no entra en ningún lado,
-       centrarlo.
-    */
-    else {
-        left =
-            (window.innerWidth -
-                menuRect.width) / 2;
-    }
-    /*
-       Vertical.
-    */
-    top = npcRect.top;
-    if (
-        top +
-        menuRect.height >
-        window.innerHeight - margin
-    ) {
-        top =
-            window.innerHeight -
-            menuRect.height -
-            margin;
-    }
-    if (top < margin) {
-        top = margin;
-    }
-    /*
-       Último límite de seguridad.
-    */
-    left =
-        Math.max(
-            margin,
-            Math.min(
-                left,
-                window.innerWidth -
-                menuRect.width -
-                margin
-            )
-        );
-    top =
-        Math.max(
-            margin,
-            Math.min(
-                top,
-                window.innerHeight -
-                menuRect.height -
-                margin
-            )
-        );
-    menu.style.left =
-        `${left}px`;
-    menu.style.top =
-        `${top}px`;
-}
-/* =========================
-   CERRAR MENÚ
-========================= */
-document.addEventListener(
-    "click",
-    event => {
-        if (
-            menu.classList.contains(
-                "hidden"
-            )
-        ) {
-            return;
-        }
-        if (
-            menu.contains(event.target) ||
-            colonistElement.contains(event.target)
-        ) {
-            return;
-        }
-        menu.classList.add(
-            "hidden"
-        );
-    }
-);
-/* =========================
-   MODO MOVER
-========================= */
-let movingMode = false;
-let moveMarker = null;
-moveButton.addEventListener(
-    "click",
-    event => {
-        event.stopPropagation();
-        movingMode = true;
-        menu.classList.add(
-            "hidden"
-        );
-        moveMode.classList.remove(
-            "hidden"
-        );
-        mapViewport.style.cursor =
-            "crosshair";
-    }
-);
-cancelMoveButton.addEventListener(
-    "click",
-    event => {
-        event.stopPropagation();
-        cancelMoveMode();
-    }
-);
-function cancelMoveMode() {
-    movingMode = false;
-    moveMode.classList.add(
-        "hidden"
-    );
-    mapViewport.style.cursor =
-        "default";
-    if (moveMarker) {
-        moveMarker.remove();
-        moveMarker = null;
-    }
-}
-/* =========================
-   ELEGIR DESTINO
-========================= */
-mapViewport.addEventListener(
-    "click",
-    event => {
-        if (!movingMode) {
-            return;
-        }
-        /*
-           Si hacemos click sobre el NPC,
-           no convertirlo en destino.
-        */
-        if (
-            colonistElement.contains(
-                event.target
-            )
-        ) {
-            return;
-        }
-        const rect =
-            mapViewport.getBoundingClientRect();
-        const viewportX =
-            event.clientX -
-            rect.left;
-        const viewportY =
-            event.clientY -
-            rect.top;
-        const worldX =
-            (viewportX -
-                cameraX) /
-            zoom;
-        const worldY =
-            (viewportY -
-                cameraY) /
-            zoom;
-        let targetX =
-            worldX /
-            TILE_SIZE;
-        let targetY =
-            worldY /
-            TILE_SIZE;
-        targetX =
-            Math.max(
-                1,
-                Math.min(
-                    WORLD_WIDTH - 1,
-                    targetX
-                )
-            );
-        targetY =
-            Math.max(
-                1,
-                Math.min(
-                    WORLD_HEIGHT - 1,
-                    targetY
-                )
-            );
-        colonist.targetX =
-            targetX;
-        colonist.targetY =
-            targetY;
-        colonist.moving = true;
-        colonist.waiting = false;
-        colonist.playerOrdered = true;
-        createMoveMarker(
-            targetX,
-            targetY
-        );
-        cancelMoveMode();
-    }
-);
-/* =========================
-   MARCADOR
-========================= */
-function createMoveMarker(x, y) {
-    if (moveMarker) {
-        moveMarker.remove();
-    }
-    moveMarker =
-        document.createElement("div");
-    moveMarker.className =
-        "move-marker";
-    moveMarker.style.left =
-        `${x * TILE_SIZE}px`;
-    moveMarker.style.top =
-        `${y * TILE_SIZE}px`;
-    world.appendChild(
-        moveMarker
-    );
-    setTimeout(() => {
-        if (moveMarker) {
-            moveMarker.remove();
-            moveMarker = null;
-        }
-    }, 3000);
-}
-/* =========================
-   ESPERAR
-========================= */
-waitButton.addEventListener(
-    "click",
-    event => {
-        event.stopPropagation();
-        colonist.waiting = true;
-        colonist.moving = false;
-        menu.classList.add(
-            "hidden"
-        );
-        setTimeout(() => {
-            colonist.waiting = false;
-            colonist.moving = true;
-            chooseRandomTarget();
-        }, 5000);
-    }
-);
+
+
 /* =========================
    TIEMPO
 ========================= */
-function updateTime(deltaSeconds) {
-    colony.minute +=
-        GAME_MINUTES_PER_SECOND *
-        deltaSeconds;
-    while (colony.minute >= 60) {
-        colony.minute -= 60;
+
+function updateTime() {
+
+    colony.minute += 5;
+
+
+    if (colony.minute >= 60) {
+
+        colony.minute = 0;
+
         colony.hour++;
+
     }
-    while (colony.hour >= 24) {
-        colony.hour -= 24;
+
+
+    if (colony.hour >= 24) {
+
+        colony.hour = 0;
+
         colony.day++;
+
         colony.yearDay++;
+
+
+        if (colony.yearDay > 365) {
+
+            colony.yearDay = 1;
+
+        }
+
     }
-    if (colony.yearDay > 365) {
-        colony.yearDay = 1;
-    }
-    const hours =
-        Math.floor(colony.hour)
-            .toString()
-            .padStart(2, "0");
-    const minutes =
-        Math.floor(colony.minute)
-            .toString()
-            .padStart(2, "0");
-    colonyTimeElement.textContent =
-        `${hours}:${minutes}`;
-    colonyDaysElement.textContent =
+
+
+    document.getElementById(
+        "colony-days"
+    ).textContent =
         `Día ${colony.day}`;
-    colonyYearDayElement.textContent =
+
+
+    document.getElementById(
+        "colony-time"
+    ).textContent =
+
+        `${String(colony.hour).padStart(2, "0")}:` +
+        `${String(colony.minute).padStart(2, "0")}`;
+
+
+    document.getElementById(
+        "colony-year-day"
+    ).textContent =
         `Día ${colony.yearDay} / 365`;
+
 }
+
+
 /* =========================
-   UTILIDAD
+   CERRAR MENÚS
 ========================= */
-function capitalize(text) {
-    return (
-        text.charAt(0).toUpperCase() +
-        text.slice(1)
-    );
-}
+
+document.addEventListener("click", function(event) {
+
+    if (
+        !event.target.closest("#colonist-menu") &&
+        !event.target.closest("#colonist") &&
+        !event.target.closest("#colonist-card")
+    ) {
+
+        closeColonistMenu();
+
+    }
+
+});
+
+
 /* =========================
-   LOOP
+   GAME LOOP
 ========================= */
+
 function gameLoop(currentTime) {
-    const deltaSeconds =
-        (currentTime - lastTime) /
-        1000;
+
+    const delta =
+        Math.min(
+            (currentTime - lastTime) / 1000,
+            .05
+        );
+
+
     lastTime =
         currentTime;
-    moveColonist(
-        deltaSeconds
-    );
-    updateTime(
-        deltaSeconds
-    );
+
+
+    moveColonist(delta);
+
+    updateColonistPosition();
+
+
     requestAnimationFrame(
         gameLoop
     );
+
 }
+
+
 /* =========================
    INICIO
 ========================= */
-colonistCountElement.textContent =
-    "1";
-updateColonistPosition();
+
+document.getElementById(
+    "colonist-count"
+).textContent = "1";
+
+
 createTrees();
-setZoomInicial();
+
+
+updateColonistPosition();
+
+
+centerCameraOnColonist();
+
+
 chooseRandomTarget();
+
+
+setInterval(
+    updateTime,
+    1000
+);
+
+
 requestAnimationFrame(
     gameLoop
 );
-/* =========================
-   ZOOM INICIAL
-========================= */
-function setZoomInicial() {
-    zoom = 1;
-    zoomLevel.textContent =
-        "100%";
-    centerCameraOnColonist();
-}
-/* =========================
-   RESIZE
-========================= */
+
+
 window.addEventListener(
     "resize",
-    () => {
+    function() {
+
         centerCameraOnColonist();
+
+
         if (
-            !menu.classList.contains(
+            !colonistMenu.classList.contains(
                 "hidden"
             )
         ) {
+
             positionColonistMenu();
+
         }
+
     }
 );
