@@ -7,24 +7,93 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="game">
-        <div id="map"></div>
-
-        <div id="colony-ui">
-            <h2>Mi colonia</h2>
-            <p>Colonos: <span id="colonist-count">1</span></p>
-        </div>
-
-        <div id="colonist-menu" class="hidden">
-            <h3>Colono</h3>
-
-            <button id="move-button">Mover</button>
-            <button id="wait-button">Esperar</button>
-            <button id="info-button">Información</button>
+<div id="game">
+    <!-- MAPA -->
+    <div id="map-viewport">
+        <div id="world">
+            <div id="map"></div>
         </div>
     </div>
-
-    <script src="game.js"></script>
+    <!-- INFORMACIÓN DE LA COLONIA -->
+    <div id="colony-info">
+        <div class="info-item">
+            <span class="info-label">COLONIA</span>
+            <span id="colony-days">Día 1</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">HORA</span>
+            <span id="colony-time">06:00</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">AÑO</span>
+            <span id="colony-year-day">Día 1 / 365</span>
+        </div>
+    </div>
+    <!-- INFORMACIÓN SUPERIOR -->
+    <div id="top-info">
+        <div class="colony-title">
+            <span class="title-icon">◆</span>
+            <span>Mi colonia</span>
+        </div>
+        <div>
+            Colonos:
+            <strong id="colonist-count">1</strong>
+        </div>
+    </div>
+    <!-- CONTROLES DE ZOOM -->
+    <div id="zoom-controls">
+        <button id="zoom-out">−</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoom-in">+</button>
+    </div>
+    <!-- MENÚ DEL COLONO -->
+    <div id="colonist-menu" class="hidden">
+        <div class="colonist-header">
+            <div id="menu-avatar"></div>
+            <div>
+                <h2 id="menu-name">Colono</h2>
+                <p id="menu-basic-info">25 años · Hombre</p>
+            </div>
+        </div>
+        <div class="menu-section">
+            <h3>Estado</h3>
+            <div class="stat-row">
+                <span>Salud</span>
+                <div class="stat-bar">
+                    <div id="health-bar"></div>
+                </div>
+                <span id="health-value">100</span>
+            </div>
+        </div>
+        <div class="menu-section">
+            <h3>Descripción</h3>
+            <p id="menu-description"></p>
+        </div>
+        <div class="menu-section">
+            <h3>Habilidades</h3>
+            <div id="skills-container"></div>
+        </div>
+        <div class="menu-section">
+            <h3>Características</h3>
+            <div id="traits-container"></div>
+        </div>
+        <div class="menu-actions">
+            <button id="move-button">
+                Mover
+            </button>
+            <button id="wait-button">
+                Esperar
+            </button>
+        </div>
+    </div>
+    <!-- INDICADOR DE MOVER -->
+    <div id="move-mode" class="hidden">
+        Elegí dónde querés que vaya el colono
+        <button id="cancel-move">Cancelar</button>
+    </div>
+    <!-- INFORMACIÓN DEL CURSOR -->
+    <div id="cursor-position"></div>
+</div>
+<script src="game.js"></script>
 </body>
 </html>
