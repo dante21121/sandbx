@@ -6,7 +6,6 @@ const colonistCard = document.getElementById("colonist-card");
 const cardAvatar = document.getElementById("card-avatar");
 
 const actionMenu = document.getElementById("action-menu");
-const actionLocationName = document.getElementById("action-location-name");
 
 const colonistMenu = document.getElementById("colonist-menu");
 
@@ -50,64 +49,227 @@ let lastTime = performance.now();
 const colony = {
 
     day: 1,
-
     yearDay: 1,
-
     hour: 6,
-
     minute: 0
 
 };
 
 
 /* =========================
+   DATOS ALEATORIOS
+========================= */
+
+const names = [
+    "Elias",
+    "Mateo",
+    "Lucas",
+    "Bruno",
+    "Dante",
+    "Nico",
+    "Leo",
+    "Tomás",
+    "Santiago",
+    "Thiago",
+    "Alex",
+    "Milo",
+    "Valentín",
+    "Adrián",
+    "Gabriel",
+    "Martín",
+    "Franco",
+    "Lautaro"
+];
+
+
+const femaleNames = [
+    "Sofía",
+    "Emma",
+    "Valentina",
+    "Martina",
+    "Camila",
+    "Lucía",
+    "Julia",
+    "Mía",
+    "Clara",
+    "Abril",
+    "Elena",
+    "Alma"
+];
+
+
+const traitsList = [
+    "Trabajador",
+    "Resistente",
+    "Curioso",
+    "Inteligente",
+    "Rápido",
+    "Fuerte",
+    "Creativo",
+    "Sociable",
+    "Paciente",
+    "Valiente",
+    "Organizado",
+    "Perceptivo"
+];
+
+
+function randomItem(array) {
+
+    return array[
+        Math.floor(
+            Math.random() * array.length
+        )
+    ];
+
+}
+
+
+function randomNumber(min, max) {
+
+    return Math.floor(
+        Math.random() *
+        (max - min + 1)
+    ) + min;
+
+}
+
+
+function generateSkills() {
+
+    return {
+
+        Agricultura:
+            randomNumber(1, 10),
+
+        Construcción:
+            randomNumber(1, 10),
+
+        Cocina:
+            randomNumber(1, 10),
+
+        Medicina:
+            randomNumber(1, 10),
+
+        Investigación:
+            randomNumber(1, 10),
+
+        Artesanía:
+            randomNumber(1, 10)
+
+    };
+
+}
+
+
+function generateTraits() {
+
+    const traits = [];
+
+    while (traits.length < 3) {
+
+        const trait =
+            randomItem(traitsList);
+
+        if (!traits.includes(trait)) {
+
+            traits.push(trait);
+
+        }
+
+    }
+
+    return traits;
+
+}
+
+
+function generateDescription(name, age, gender, skills, traits) {
+
+    const bestSkill =
+        Object.entries(skills)
+            .sort((a, b) => b[1] - a[1])[0][0];
+
+    const genderText =
+        gender === "Hombre"
+            ? "Es un"
+            : "Es una";
+
+    return `${name} tiene ${age} años. ${genderText} colono ${traits[0].toLowerCase()} y ${traits[1].toLowerCase()}, con especial talento en ${bestSkill.toLowerCase()}.`;
+
+}
+
+
+function generateColonistData() {
+
+    const gender =
+        Math.random() < 0.5
+            ? "Hombre"
+            : "Mujer";
+
+
+    const name =
+        gender === "Hombre"
+            ? randomItem(names)
+            : randomItem(femaleNames);
+
+
+    const age =
+        randomNumber(18, 55);
+
+
+    const health =
+        randomNumber(75, 100);
+
+
+    const skills =
+        generateSkills();
+
+
+    const traits =
+        generateTraits();
+
+
+    return {
+
+        name,
+        age,
+        gender,
+        health,
+        skills,
+        traits,
+
+        description:
+            generateDescription(
+                name,
+                age,
+                gender,
+                skills,
+                traits
+            )
+
+    };
+
+}
+
+
+/* =========================
    COLONO
 ========================= */
 
+const randomData =
+    generateColonistData();
+
+
 const colonist = {
 
-    name: "Elias",
-
-    age: 27,
-
-    gender: "Hombre",
+    ...randomData,
 
     x: 50 * TILE_SIZE,
 
     y: 30 * TILE_SIZE,
 
-    speed: 80,
-
-    health: 100,
-
-    description:
-        "Elias es un colono tranquilo y trabajador. Tiene experiencia con tareas manuales y una buena resistencia física.",
-
-    skills: {
-
-        Agricultura: 7,
-
-        Construcción: 5,
-
-        Cocina: 3,
-
-        Medicina: 2,
-
-        Investigación: 1,
-
-        Artesanía: 6
-
-    },
-
-    traits: [
-
-        "Trabajador",
-
-        "Resistente",
-
-        "Curioso"
-
-    ]
+    speed: 80
 
 };
 
@@ -118,7 +280,8 @@ const colonist = {
 
 function createColonist() {
 
-    const npc = document.createElement("div");
+    const npc =
+        document.createElement("div");
 
     npc.id = "colonist";
 
@@ -145,9 +308,12 @@ function createColonist() {
     world.appendChild(npc);
 
     return npc;
+
 }
 
-const colonistElement = createColonist();
+
+const colonistElement =
+    createColonist();
 
 
 /* =========================
@@ -165,11 +331,15 @@ function createAvatar(element) {
         <div class="npc-body"></div>
 
     `;
+
 }
+
 
 createAvatar(cardAvatar);
 
-createAvatar(document.getElementById("menu-avatar"));
+createAvatar(
+    document.getElementById("menu-avatar")
+);
 
 
 /* =========================
@@ -183,6 +353,7 @@ function updateColonistPosition() {
 
     colonistElement.style.top =
         colonist.y + "px";
+
 }
 
 
@@ -201,6 +372,7 @@ function selectColonist() {
     closeActionMenu();
 
     closeColonistMenu();
+
 }
 
 
@@ -208,56 +380,68 @@ function selectColonist() {
    CLICK EN TARJETA
 ========================= */
 
-colonistCard.addEventListener("click", function(event) {
+colonistCard.addEventListener(
+    "click",
+    function(event) {
 
-    event.stopPropagation();
+        event.stopPropagation();
 
-    selectColonist();
+        selectColonist();
 
-});
+    }
+);
 
 
 /* =========================
    DOBLE CLICK EN TARJETA
 ========================= */
 
-colonistCard.addEventListener("dblclick", function(event) {
+colonistCard.addEventListener(
+    "dblclick",
+    function(event) {
 
-    event.stopPropagation();
+        event.stopPropagation();
 
-    selectColonist();
+        selectColonist();
 
-    openColonistMenu();
+        openColonistMenu();
 
-});
+    }
+);
 
 
 /* =========================
    CLICK NPC
 ========================= */
 
-colonistElement.addEventListener("click", function(event) {
+colonistElement.addEventListener(
+    "click",
+    function(event) {
 
-    event.stopPropagation();
+        event.stopPropagation();
 
-    selectColonist();
+        selectColonist();
 
-});
+    }
+);
 
 
 /* =========================
    DOBLE CLICK NPC
 ========================= */
 
-colonistElement.addEventListener("dblclick", function(event) {
+colonistElement.addEventListener(
+    "dblclick",
+    function(event) {
 
-    event.stopPropagation();
+        event.stopPropagation();
 
-    selectColonist();
+        selectColonist();
 
-    openColonistMenu();
+        openColonistMenu();
 
-});
+    }
+);
 
 
 /* =========================
@@ -268,43 +452,64 @@ function openColonistMenu() {
 
     updateColonistMenu();
 
-    colonistMenu.classList.remove("hidden");
+    colonistMenu.classList.remove(
+        "hidden"
+    );
 
     requestAnimationFrame(() => {
 
         positionColonistMenu();
 
     });
+
 }
 
 
 function closeColonistMenu() {
 
-    colonistMenu.classList.add("hidden");
+    colonistMenu.classList.add(
+        "hidden"
+    );
 
 }
 
 
 function updateColonistMenu() {
 
-    document.getElementById("menu-name").textContent =
+    document.getElementById(
+        "menu-name"
+    ).textContent =
         colonist.name;
 
-    document.getElementById("menu-basic-info").textContent =
+
+    document.getElementById(
+        "menu-basic-info"
+    ).textContent =
         `${colonist.age} años · ${colonist.gender}`;
 
-    document.getElementById("menu-description").textContent =
+
+    document.getElementById(
+        "menu-description"
+    ).textContent =
         colonist.description;
 
-    document.getElementById("health-value").textContent =
+
+    document.getElementById(
+        "health-value"
+    ).textContent =
         colonist.health;
 
-    document.getElementById("health-bar").style.width =
+
+    document.getElementById(
+        "health-bar"
+    ).style.width =
         colonist.health + "%";
 
 
     const skills =
-        document.getElementById("skills-container");
+        document.getElementById(
+            "skills-container"
+        );
 
     skills.innerHTML = "";
 
@@ -333,25 +538,29 @@ function updateColonistMenu() {
 
 
     const traits =
-        document.getElementById("traits-container");
+        document.getElementById(
+            "traits-container"
+        );
 
     traits.innerHTML = "";
 
 
-    colonist.traits.forEach(trait => {
+    colonist.traits.forEach(
+        trait => {
 
-        const element =
-            document.createElement("span");
+            const element =
+                document.createElement("span");
 
-        element.className =
-            "trait";
+            element.className =
+                "trait";
 
-        element.textContent =
-            trait;
+            element.textContent =
+                trait;
 
-        traits.appendChild(element);
+            traits.appendChild(element);
 
-    });
+        }
+    );
 
 }
 
@@ -359,7 +568,9 @@ function updateColonistMenu() {
 function positionColonistMenu() {
 
     const rect =
-        colonistElement.getBoundingClientRect();
+        colonistElement
+            .getBoundingClientRect();
+
 
     const menuWidth =
         colonistMenu.offsetWidth;
@@ -428,62 +639,265 @@ function positionColonistMenu() {
    CLICK EN MAPA
 ========================= */
 
-viewport.addEventListener("click", function(event) {
+viewport.addEventListener(
+    "click",
+    function(event) {
 
-    if (!selectedColonist) {
+        if (!selectedColonist) {
 
-        return;
+            return;
 
-    }
+        }
 
 
-    if (movingMode) {
+        if (movingMode) {
 
-        setMoveTarget(
+            setMoveTarget(
+                event.clientX,
+                event.clientY
+            );
+
+            return;
+
+        }
+
+
+        if (
+            event.target.closest(
+                "#colonist"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            event.target.closest(
+                "#colonist-list"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            event.target.closest(
+                "#action-menu"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        /* ÁRBOL */
+
+        const tree =
+            event.target.closest(
+                ".tree"
+            );
+
+
+        if (tree) {
+
+            showTreeActions(
+                tree,
+                event.clientX,
+                event.clientY
+            );
+
+            return;
+
+        }
+
+
+        /* SUELO */
+
+        showGroundActions(
             event.clientX,
             event.clientY
         );
 
-        return;
-
     }
-
-
-    if (
-        event.target.closest("#colonist") ||
-        event.target.closest(".tree")
-    ) {
-
-        return;
-
-    }
-
-
-    showActionMenu(
-        event.clientX,
-        event.clientY
-    );
-
-});
+);
 
 
 /* =========================
-   MENÚ ACCIONES
+   MENÚ DE ACCIONES
 ========================= */
+
+function showGroundActions(x, y) {
+
+    actionMenu.innerHTML = `
+
+        <div class="action-title">
+            Suelo
+        </div>
+
+        <button
+            class="action-button"
+            data-action="move"
+        >
+            <span>🚶</span>
+
+            <div>
+                <strong>Mover</strong>
+
+                <small>
+                    Ir hasta aquí
+                </small>
+            </div>
+
+        </button>
+
+
+        <button
+            class="action-button"
+            data-action="wait"
+        >
+            <span>⏳</span>
+
+            <div>
+                <strong>Esperar</strong>
+
+                <small>
+                    Quedarse aquí
+                </small>
+            </div>
+
+        </button>
+
+    `;
+
+
+    addActionListeners();
+
+    showActionMenu(x, y);
+
+}
+
+
+function showTreeActions(tree, x, y) {
+
+    actionMenu.innerHTML = `
+
+        <div class="action-title">
+            Árbol
+        </div>
+
+        <button
+            class="action-button"
+            data-action="cut-tree"
+        >
+            <span>🪓</span>
+
+            <div>
+                <strong>Talar</strong>
+
+                <small>
+                    Cortar árbol
+                </small>
+            </div>
+
+        </button>
+
+    `;
+
+
+    actionMenu.dataset.treeId =
+        Math.random().toString(36);
+
+
+    tree.dataset.actionTree =
+        actionMenu.dataset.treeId;
+
+
+    addActionListeners();
+
+    showActionMenu(x, y);
+
+}
+
+
+function addActionListeners() {
+
+    actionMenu
+        .querySelectorAll(
+            ".action-button"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                function(event) {
+
+                    event.stopPropagation();
+
+
+                    const action =
+                        button.dataset.action;
+
+
+                    if (
+                        action === "move"
+                    ) {
+
+                        startMoveMode();
+
+                    }
+
+
+                    if (
+                        action === "wait"
+                    ) {
+
+                        waitUntil =
+                            performance.now()
+                            + 5000;
+
+                        moveTarget = null;
+
+                        autonomousTarget =
+                            null;
+
+                        closeActionMenu();
+
+                    }
+
+
+                    if (
+                        action === "cut-tree"
+                    ) {
+
+                        cutSelectedTree();
+
+                    }
+
+                }
+            );
+
+        });
+
+}
+
 
 function showActionMenu(x, y) {
 
-    actionLocationName.textContent =
-        "Suelo";
-
-    actionMenu.classList.remove("hidden");
+    actionMenu.classList.remove(
+        "hidden"
+    );
 
 
     let left =
-        x + 12;
+        x + 10;
 
     let top =
-        y + 12;
+        y + 10;
 
 
     requestAnimationFrame(() => {
@@ -501,7 +915,7 @@ function showActionMenu(x, y) {
         ) {
 
             left =
-                x - width - 12;
+                x - width - 10;
 
         }
 
@@ -512,16 +926,16 @@ function showActionMenu(x, y) {
         ) {
 
             top =
-                y - height - 12;
+                y - height - 10;
 
         }
 
 
         left =
-            Math.max(8, left);
+            Math.max(6, left);
 
         top =
-            Math.max(8, top);
+            Math.max(6, top);
 
 
         actionMenu.style.left =
@@ -537,60 +951,43 @@ function showActionMenu(x, y) {
 
 function closeActionMenu() {
 
-    actionMenu.classList.add("hidden");
+    actionMenu.classList.add(
+        "hidden"
+    );
 
 }
 
 
 /* =========================
-   ACCIONES
+   TALAR ÁRBOL
 ========================= */
 
-document.querySelectorAll(".action-button")
-    .forEach(button => {
+function cutSelectedTree() {
 
-        button.addEventListener("click", function(event) {
-
-            event.stopPropagation();
-
-            const action =
-                button.dataset.action;
+    const treeId =
+        actionMenu.dataset.treeId;
 
 
-            if (action === "move") {
-
-                startMoveMode();
-
-            }
-
-
-            if (action === "inspect") {
-
-                console.log(
-                    "Inspeccionando el lugar..."
-                );
-
-                closeActionMenu();
-
-            }
+    const tree =
+        document.querySelector(
+            `.tree[data-action-tree="${treeId}"]`
+        );
 
 
-            if (action === "wait") {
+    if (!tree) {
 
-                waitUntil =
-                    performance.now() + 5000;
+        closeActionMenu();
 
-                moveTarget = null;
+        return;
 
-                autonomousTarget = null;
+    }
 
-                closeActionMenu();
 
-            }
+    tree.remove();
 
-        });
+    closeActionMenu();
 
-    });
+}
 
 
 /* =========================
@@ -603,7 +1000,9 @@ function startMoveMode() {
 
     closeActionMenu();
 
-    moveMode.classList.remove("hidden");
+    moveMode.classList.remove(
+        "hidden"
+    );
 
     viewport.style.cursor =
         "crosshair";
@@ -611,21 +1010,29 @@ function startMoveMode() {
 }
 
 
-cancelMove.addEventListener("click", function(event) {
+cancelMove.addEventListener(
+    "click",
+    function(event) {
 
-    event.stopPropagation();
+        event.stopPropagation();
 
-    movingMode = false;
+        movingMode = false;
 
-    moveMode.classList.add("hidden");
+        moveMode.classList.add(
+            "hidden"
+        );
 
-    viewport.style.cursor =
-        "default";
+        viewport.style.cursor =
+            "default";
 
-});
+    }
+);
 
 
-function setMoveTarget(screenX, screenY) {
+function setMoveTarget(
+    screenX,
+    screenY
+) {
 
     const rect =
         viewport.getBoundingClientRect();
@@ -639,10 +1046,12 @@ function setMoveTarget(screenX, screenY) {
 
 
     const worldX =
-        (viewportX - cameraX) / zoom;
+        (viewportX - cameraX) /
+        zoom;
 
     const worldY =
-        (viewportY - cameraY) / zoom;
+        (viewportY - cameraY) /
+        zoom;
 
 
     moveTarget = {
@@ -650,7 +1059,8 @@ function setMoveTarget(screenX, screenY) {
         x: Math.max(
             30,
             Math.min(
-                WORLD_WIDTH * TILE_SIZE - 30,
+                WORLD_WIDTH *
+                TILE_SIZE - 30,
                 worldX
             )
         ),
@@ -658,7 +1068,8 @@ function setMoveTarget(screenX, screenY) {
         y: Math.max(
             30,
             Math.min(
-                WORLD_HEIGHT * TILE_SIZE - 30,
+                WORLD_HEIGHT *
+                TILE_SIZE - 30,
                 worldY
             )
         )
@@ -677,7 +1088,9 @@ function setMoveTarget(screenX, screenY) {
 
     movingMode = false;
 
-    moveMode.classList.add("hidden");
+    moveMode.classList.add(
+        "hidden"
+    );
 
     viewport.style.cursor =
         "default";
@@ -688,7 +1101,10 @@ function setMoveTarget(screenX, screenY) {
 function createMoveMarker(x, y) {
 
     const old =
-        document.querySelector(".move-marker");
+        document.querySelector(
+            ".move-marker"
+        );
+
 
     if (old) {
 
@@ -700,8 +1116,10 @@ function createMoveMarker(x, y) {
     const marker =
         document.createElement("div");
 
+
     marker.className =
         "move-marker";
+
 
     marker.style.left =
         x + "px";
@@ -793,6 +1211,7 @@ function moveColonist(delta) {
                     ".move-marker"
                 );
 
+
             if (marker) {
 
                 marker.remove();
@@ -814,6 +1233,7 @@ function moveColonist(delta) {
         (dx / distance) *
         colonist.speed *
         delta;
+
 
     colonist.y +=
         (dy / distance) *
@@ -872,7 +1292,10 @@ function changeZoom(
     newZoom =
         Math.max(
             .5,
-            Math.min(2, newZoom)
+            Math.min(
+                2,
+                newZoom
+            )
         );
 
 
@@ -920,31 +1343,39 @@ function changeZoom(
 
 
     zoomLevel.textContent =
-        Math.round(zoom * 100) + "%";
+        Math.round(
+            zoom * 100
+        ) + "%";
 
 }
 
 
-zoomIn.addEventListener("click", function() {
+zoomIn.addEventListener(
+    "click",
+    function() {
 
-    changeZoom(
-        zoom + .1,
-        window.innerWidth / 2,
-        window.innerHeight / 2
-    );
+        changeZoom(
+            zoom + .1,
+            window.innerWidth / 2,
+            window.innerHeight / 2
+        );
 
-});
+    }
+);
 
 
-zoomOut.addEventListener("click", function() {
+zoomOut.addEventListener(
+    "click",
+    function() {
 
-    changeZoom(
-        zoom - .1,
-        window.innerWidth / 2,
-        window.innerHeight / 2
-    );
+        changeZoom(
+            zoom - .1,
+            window.innerWidth / 2,
+            window.innerHeight / 2
+        );
 
-});
+    }
+);
 
 
 viewport.addEventListener(
@@ -967,7 +1398,9 @@ viewport.addEventListener(
         );
 
     },
-    { passive: false }
+    {
+        passive: false
+    }
 );
 
 
@@ -1017,7 +1450,9 @@ function createTrees() {
 
 
         const tree =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
 
         tree.className =
@@ -1118,19 +1553,30 @@ function updateTime() {
    CERRAR MENÚS
 ========================= */
 
-document.addEventListener("click", function(event) {
+document.addEventListener(
+    "click",
+    function(event) {
 
-    if (
-        !event.target.closest("#colonist-menu") &&
-        !event.target.closest("#colonist") &&
-        !event.target.closest("#colonist-card")
-    ) {
+        if (
+            !event.target.closest(
+                "#colonist-menu"
+            ) &&
 
-        closeColonistMenu();
+            !event.target.closest(
+                "#colonist"
+            ) &&
+
+            !event.target.closest(
+                "#colonist-card"
+            )
+        ) {
+
+            closeColonistMenu();
+
+        }
 
     }
-
-});
+);
 
 
 /* =========================
@@ -1169,6 +1615,20 @@ function gameLoop(currentTime) {
 document.getElementById(
     "colonist-count"
 ).textContent = "1";
+
+
+/* Mostrar nombre aleatorio */
+
+document.querySelector(
+    ".card-name"
+).textContent =
+    colonist.name;
+
+
+document.getElementById(
+    "menu-name"
+).textContent =
+    colonist.name;
 
 
 createTrees();
