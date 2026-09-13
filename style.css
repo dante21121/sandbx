@@ -1,0 +1,111 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+
+    background-color: #536b3d;
+
+    background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+
+    background-size: 40px 40px;
+}
+
+#colonist {
+    position: absolute;
+
+    width: 28px;
+    height: 28px;
+
+    background: #e8c547;
+
+    border: 3px solid #222;
+    border-radius: 50%;
+
+    transform: translate(-50%, -50%);
+
+    cursor: pointer;
+
+    z-index: 5;
+}
+
+#colony-ui {
+    position: absolute;
+
+    top: 15px;
+    left: 15px;
+
+    padding: 15px 20px;
+
+    background: rgba(20, 20, 20, 0.85);
+
+    border-radius: 10px;
+
+    z-index: 10;
+}
+
+#colony-ui h2 {
+    margin-bottom: 8px;
+}
+
+#colonist-menu {
+    position: absolute;
+
+    min-width: 180px;
+
+    padding: 15px;
+
+    background: rgba(20, 20, 20, 0.95);
+
+    border: 1px solid #555;
+    border-radius: 10px;
+
+    z-index: 20;
+}
+
+#colonist-menu h3 {
+    margin-bottom: 12px;
+}
+
+#colonist-menu button {
+    width: 100%;
+
+    padding: 9px;
+    margin-top: 6px;
+
+    border: none;
+    border-radius: 6px;
+
+    background: #3d3d3d;
+    color: white;
+
+    cursor: pointer;
+}
+
+#colonist-menu button:hover {
+    background: #555;
+}
+
+.hidden {
+    display: none;
+}
