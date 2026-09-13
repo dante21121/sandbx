@@ -1,19 +1,26 @@
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
-
-    font-family: Arial, sans-serif;
-
-    background: #111711;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #18251a;
     color: white;
+}
+
+body {
+    user-select: none;
+}
+
+button {
+    font-family: inherit;
 }
 
 #game {
@@ -22,7 +29,6 @@ body {
     overflow: hidden;
 }
 
-
 /* =========================
    MAPA
 ========================= */
@@ -30,32 +36,26 @@ body {
 #map-viewport {
     position: absolute;
     inset: 0;
-
     overflow: hidden;
-
     background: #304d32;
+    touch-action: none;
+    cursor: grab;
+}
+
+#map-viewport:active {
+    cursor: grabbing;
 }
 
 #world {
     position: absolute;
-
-    left: 0;
-    top: 0;
-
     width: 4000px;
     height: 2400px;
-
     transform-origin: 0 0;
-
-    will-change: transform;
 }
 
 #map {
     position: absolute;
-
-    left: 0;
-    top: 0;
-
+    inset: 0;
     width: 4000px;
     height: 2400px;
 
@@ -63,18 +63,17 @@ body {
 
     background-image:
         linear-gradient(
-            rgba(255,255,255,.035) 1px,
+            rgba(255,255,255,.025) 1px,
             transparent 1px
         ),
         linear-gradient(
             90deg,
-            rgba(255,255,255,.035) 1px,
+            rgba(255,255,255,.025) 1px,
             transparent 1px
         );
 
     background-size: 40px 40px;
 }
-
 
 /* =========================
    ÁRBOLES
@@ -82,64 +81,37 @@ body {
 
 .tree {
     position: absolute;
-
     width: 48px;
     height: 70px;
-
-    transform-origin: bottom center;
-
-    pointer-events: auto;
-
     z-index: 20;
+    pointer-events: auto;
 }
 
-.tree-shadow {
+.tree::before {
+    content: "";
     position: absolute;
-
-    left: 7px;
-    bottom: 2px;
-
-    width: 35px;
-    height: 10px;
-
-    background: rgba(0,0,0,.25);
-
-    border-radius: 50%;
-}
-
-.tree-trunk {
-    position: absolute;
-
-    left: 20px;
-    bottom: 8px;
-
-    width: 9px;
+    left: 19px;
+    bottom: 0;
+    width: 11px;
     height: 30px;
-
-    background: #69472d;
-
+    background: #65452d;
     border-radius: 3px;
 }
 
-.tree-crown {
+.tree::after {
+    content: "";
     position: absolute;
-
     left: 2px;
     top: 0;
-
     width: 44px;
-    height: 45px;
-
-    background: #1b4327;
-
+    height: 44px;
+    background: #315e36;
     border-radius: 50%;
-
     box-shadow:
-        8px 8px 0 #25552e,
-        -7px 10px 0 #2a6034,
-        2px -6px 0 #214c2b;
+        8px 4px 0 #396b3d,
+        -7px 10px 0 #2c5631,
+        4px 15px 0 #28502d;
 }
-
 
 /* =========================
    COLONO
@@ -147,130 +119,88 @@ body {
 
 #colonist {
     position: absolute;
-
-    left: 0;
-    top: 0;
-
     width: 38px;
     height: 60px;
-
-    transform: translate(-50%, -100%);
-
     z-index: 100;
-
-    cursor: pointer;
-
     pointer-events: auto;
+    cursor: pointer;
+    transform-origin: center bottom;
 }
 
-.npc-shadow {
+#colonist .head {
     position: absolute;
-
-    left: 4px;
-    bottom: 0;
-
-    width: 30px;
-    height: 9px;
-
-    background: rgba(0,0,0,.35);
-
-    border-radius: 50%;
-}
-
-.npc-head {
-    position: absolute;
-
-    left: 11px;
-    top: 5px;
-
-    width: 16px;
-    height: 18px;
-
-    background: #d7a477;
-
-    border-radius: 50%;
-
-    z-index: 2;
-}
-
-.npc-hair {
-    position: absolute;
-
     left: 10px;
-    top: 3px;
-
+    top: 0;
     width: 18px;
-    height: 9px;
-
-    background: #3b281d;
-
-    border-radius: 10px 10px 3px 3px;
-
+    height: 18px;
+    background: #d69b70;
+    border-radius: 50%;
     z-index: 3;
 }
 
-.npc-body {
+#colonist .hair {
     position: absolute;
-
     left: 9px;
-    top: 22px;
-
+    top: -2px;
     width: 20px;
+    height: 10px;
+    background: #3a291f;
+    border-radius: 12px 12px 5px 5px;
+    z-index: 4;
+}
+
+#colonist .body {
+    position: absolute;
+    left: 7px;
+    top: 18px;
+    width: 24px;
     height: 25px;
-
-    background: #596b8c;
-
+    background: #596b73;
     border-radius: 6px 6px 4px 4px;
+    z-index: 2;
 }
 
-.npc-arm-left,
-.npc-arm-right {
+#colonist .arm-left,
+#colonist .arm-right {
     position: absolute;
-
-    top: 25px;
-
-    width: 6px;
-    height: 20px;
-
-    background: #d7a477;
-
-    border-radius: 4px;
-}
-
-.npc-arm-left {
-    left: 4px;
-}
-
-.npc-arm-right {
-    right: 4px;
-}
-
-.npc-leg-left,
-.npc-leg-right {
-    position: absolute;
-
-    top: 45px;
-
+    top: 21px;
     width: 7px;
-    height: 12px;
+    height: 22px;
+    background: #d69b70;
+    border-radius: 5px;
+    z-index: 1;
+}
 
-    background: #262b38;
+#colonist .arm-left {
+    left: 2px;
+    transform: rotate(8deg);
+}
 
+#colonist .arm-right {
+    right: 2px;
+    transform: rotate(-8deg);
+}
+
+#colonist .leg-left,
+#colonist .leg-right {
+    position: absolute;
+    top: 40px;
+    width: 8px;
+    height: 20px;
+    background: #30383b;
     border-radius: 3px;
+    z-index: 1;
 }
 
-.npc-leg-left {
-    left: 10px;
+#colonist .leg-left {
+    left: 9px;
 }
 
-.npc-leg-right {
-    right: 10px;
+#colonist .leg-right {
+    right: 9px;
 }
 
-
-/* =========================
-   SIN ESTELA AL SELECCIONAR
-========================= */
+/* Sin brillo/estela al seleccionar */
 
 #colonist.selected {
     filter: none;
@@ -280,193 +210,425 @@ body {
     display: none;
 }
 
-
 /* =========================
-   TARJETA
+   TARJETA DEL COLONO
 ========================= */
 
 #colonist-list {
     position: fixed;
-
-    left: 18px;
-    top: 85px;
-
-    z-index: 500;
+    top: 70px;
+    left: 16px;
+    z-index: 300;
 }
 
 .colonist-card {
-    width: 92px;
+    width: 175px;
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 
-    padding: 7px;
+    padding: 8px 10px;
 
-    background: rgba(19,24,20,.95);
+    background: rgba(18, 25, 19, .94);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 10px;
 
-    border: 1px solid rgba(255,255,255,.1);
-
-    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.3);
 
     cursor: pointer;
-
-    transition:
-        transform .12s,
-        border-color .12s,
-        box-shadow .12s;
-}
-
-.colonist-card:hover {
-    transform: translateY(-2px);
 }
 
 .colonist-card.selected {
-    border-color: #e6c84f;
-
-    box-shadow:
-        0 0 0 2px rgba(230,200,79,.2);
+    border-color: rgba(240,213,92,.65);
 }
 
 #card-avatar {
+    width: 38px;
+    height: 44px;
     position: relative;
-
-    width: 78px;
-    height: 72px;
-
     overflow: hidden;
-
-    background: #303b35;
-
-    border-radius: 9px;
-}
-
-#card-avatar .npc-head {
-    transform: scale(1.4);
-
-    left: 31px;
-    top: 13px;
-}
-
-#card-avatar .npc-hair {
-    transform: scale(1.4);
-
-    left: 30px;
-    top: 10px;
-}
-
-#card-avatar .npc-body {
-    transform: scale(1.4);
-
-    left: 28px;
-    top: 39px;
-}
-
-#card-avatar .npc-arm-left,
-#card-avatar .npc-arm-right,
-#card-avatar .npc-leg-left,
-#card-avatar .npc-leg-right,
-#card-avatar .npc-shadow {
-    display: none;
+    flex-shrink: 0;
 }
 
 .card-name {
-    margin-top: 6px;
-
-    text-align: center;
-
     font-size: 13px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-
 /* =========================
-   INFO SUPERIOR
+   INFORMACIÓN SUPERIOR
 ========================= */
 
 #top-info {
     position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
 
-    top: 18px;
-    left: 18px;
-    right: 18px;
-
-    z-index: 300;
+    z-index: 250;
 
     display: flex;
-
     justify-content: space-between;
     align-items: center;
 
-    padding: 12px 16px;
+    pointer-events: none;
 
-    background: rgba(15,20,16,.88);
-
-    border:
-        1px solid rgba(255,255,255,.08);
-
-    border-radius: 12px;
-
-    font-size: 14px;
+    color: #c8d0ca;
+    font-size: 12px;
 }
 
 .colony-title {
     display: flex;
-
     align-items: center;
+    gap: 7px;
 
-    gap: 9px;
-
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .title-icon {
     color: #d6bd4d;
+    font-size: 10px;
 }
 
-
 /* =========================
-   INFO COLONIA
+   INFORMACIÓN DE COLONIA
 ========================= */
 
 #colony-info {
     position: fixed;
-
-    left: 18px;
+    left: 16px;
     bottom: 18px;
 
-    z-index: 300;
+    z-index: 250;
 
     display: flex;
-
     gap: 10px;
+
+    padding: 9px 11px;
+
+    background: rgba(15,20,16,.9);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+
+    box-shadow: 0 8px 25px rgba(0,0,0,.25);
 }
 
 .info-item {
-    min-width: 105px;
-
-    padding: 9px 12px;
-
     display: flex;
-
     flex-direction: column;
-
     gap: 3px;
-
-    background: rgba(15,20,16,.9);
-
-    border:
-        1px solid rgba(255,255,255,.08);
-
-    border-radius: 10px;
-
-    font-size: 13px;
 }
 
 .info-label {
-    color: #89958c;
-
-    font-size: 9px;
-
-    letter-spacing: 1px;
+    color: #788279;
+    font-size: 8px;
+    letter-spacing: .8px;
 }
 
+#colony-info span:last-child {
+    color: #d3dad4;
+    font-size: 11px;
+}
+
+/* =========================
+   MENÚ DE ACCIONES
+========================= */
+
+#action-menu {
+    position: fixed;
+    z-index: 1000;
+
+    width: 175px;
+    padding: 6px;
+
+    background: rgba(18,23,19,.98);
+
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 9px;
+
+    box-shadow: 0 8px 25px rgba(0,0,0,.4);
+}
+
+.action-title {
+    padding: 5px 7px 6px;
+    margin-bottom: 2px;
+
+    color: #9da79f;
+    font-size: 11px;
+
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.action-button {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 7px;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: transparent;
+    color: white;
+
+    text-align: left;
+    cursor: pointer;
+}
+
+.action-button:hover {
+    background: rgba(255,255,255,.08);
+}
+
+.action-button:active {
+    background: rgba(255,255,255,.12);
+}
+
+.action-button > span {
+    font-size: 16px;
+}
+
+.action-button div {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.action-button strong {
+    font-size: 12px;
+}
+
+.action-button small {
+    color: #7f8a82;
+    font-size: 9px;
+}
+
+/* =========================
+   LÍNEA DE MOVIMIENTO
+========================= */
+
+.move-line {
+    position: absolute;
+
+    height: 2px;
+
+    transform-origin: left center;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            rgba(240,213,92,.8) 0,
+            rgba(240,213,92,.8) 8px,
+            transparent 8px,
+            transparent 14px
+        );
+
+    pointer-events: none;
+
+    z-index: 80;
+
+    opacity: .8;
+}
+
+/* =========================
+   MARCADOR DE DESTINO
+========================= */
+
+.move-marker {
+    position: absolute;
+
+    width: 30px;
+    height: 30px;
+
+    transform: translate(-50%, -50%);
+
+    border: 2px solid #f0d55c;
+    border-radius: 50%;
+
+    background: rgba(240,213,92,.15);
+
+    pointer-events: none;
+
+    z-index: 90;
+}
+
+/* =========================
+   MENÚ DEL COLONO
+========================= */
+
+#colonist-menu {
+    position: fixed;
+
+    top: 70px;
+    right: 18px;
+
+    width: 290px;
+    max-height: calc(100vh - 90px);
+
+    overflow-y: auto;
+
+    z-index: 900;
+
+    padding: 14px;
+
+    background: rgba(18,24,19,.97);
+
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+
+    box-shadow: 0 12px 35px rgba(0,0,0,.45);
+}
+
+.colonist-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding-bottom: 12px;
+
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+#menu-avatar {
+    width: 42px;
+    height: 52px;
+
+    position: relative;
+    flex-shrink: 0;
+
+    overflow: hidden;
+}
+
+#menu-name {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+#menu-basic-info {
+    margin-top: 3px;
+
+    color: #8e9991;
+    font-size: 11px;
+}
+
+.menu-section {
+    padding: 12px 0;
+
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.menu-section:last-child {
+    border-bottom: 0;
+}
+
+.menu-section h3 {
+    margin-bottom: 9px;
+
+    color: #aeb7af;
+
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+}
+
+.menu-section p {
+    color: #9da79f;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* =========================
+   SALUD
+========================= */
+
+.stat-row {
+    display: grid;
+    grid-template-columns: 45px 1fr 25px;
+    align-items: center;
+    gap: 7px;
+
+    color: #aeb7af;
+    font-size: 11px;
+}
+
+.stat-bar {
+    height: 6px;
+
+    overflow: hidden;
+
+    background: #2b342d;
+    border-radius: 5px;
+}
+
+#health-bar {
+    width: 100%;
+    height: 100%;
+
+    background: #6c9b6b;
+    border-radius: 5px;
+}
+
+/* =========================
+   HABILIDADES
+========================= */
+
+#skills-container {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.skill-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 22px;
+    align-items: center;
+    gap: 7px;
+
+    color: #aeb7af;
+    font-size: 10px;
+}
+
+.skill-bar {
+    height: 5px;
+
+    overflow: hidden;
+
+    background: #2b342d;
+    border-radius: 5px;
+}
+
+.skill-fill {
+    height: 100%;
+
+    background: #768f6e;
+    border-radius: 5px;
+}
+
+/* =========================
+   CARACTERÍSTICAS
+========================= */
+
+#traits-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.trait {
+    padding: 4px 7px;
+
+    background: #29332b;
+
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 5px;
+
+    color: #aeb7af;
+    font-size: 9px;
+}
 
 /* =========================
    ZOOM
@@ -481,376 +643,109 @@ body {
     z-index: 300;
 
     display: flex;
-
     align-items: center;
+    gap: 6px;
 
-    gap: 7px;
-
-    padding: 6px;
+    padding: 8px 10px;
 
     background: rgba(15,20,16,.9);
 
+    border: 1px solid rgba(255,255,255,.07);
     border-radius: 10px;
 }
 
-#zoom-controls button {
-    width: 32px;
-    height: 32px;
+.zoom-icon {
+    width: 10px;
 
-    border: 0;
+    color: #aab3ab;
 
-    border-radius: 7px;
+    font-size: 13px;
+    text-align: center;
+}
 
-    background: #303a32;
+#zoom-slider {
+    width: 105px;
+    height: 18px;
 
-    color: white;
+    margin: 0;
 
-    font-size: 20px;
+    accent-color: #d6bd4d;
 
     cursor: pointer;
 }
 
 #zoom-level {
-    min-width: 50px;
-
-    text-align: center;
-
-    font-size: 12px;
-}
-
-
-/* =========================
-   MENÚ DE ACCIONES
-========================= */
-
-#action-menu {
-    position: fixed;
-
-    z-index: 1000;
-
-    width: 175px;
-
-    padding: 6px;
-
-    background: rgba(18,23,19,.98);
-
-    border:
-        1px solid rgba(255,255,255,.12);
-
-    border-radius: 9px;
-
-    box-shadow:
-        0 8px 25px rgba(0,0,0,.4);
-}
-
-.action-title {
-    padding: 5px 7px 6px;
-
-    margin-bottom: 2px;
-
-    color: #9da79f;
-
-    font-size: 11px;
-
-    border-bottom:
-        1px solid rgba(255,255,255,.07);
-}
-
-.action-button {
-    width: 100%;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    padding: 7px;
-
-    border: 0;
-
-    border-radius: 6px;
-
-    background: transparent;
-
-    color: white;
-
-    text-align: left;
-
-    cursor: pointer;
-}
-
-.action-button:hover {
-    background: rgba(255,255,255,.08);
-}
-
-.action-button > span {
-    font-size: 16px;
-}
-
-.action-button div {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 1px;
-}
-
-.action-button strong {
-    font-size: 12px;
-}
-
-.action-button small {
-    color: #7f8a82;
-
-    font-size: 9px;
-}
-
-
-/* =========================
-   FICHA
-========================= */
-
-#colonist-menu {
-    position: fixed;
-
-    z-index: 1100;
-
-    width: 290px;
-
-    max-height:
-        calc(100vh - 40px);
-
-    overflow-y: auto;
-
-    padding: 16px;
-
-    background: rgba(17,22,18,.98);
-
-    border:
-        1px solid rgba(255,255,255,.12);
-
-    border-radius: 14px;
-
-    box-shadow:
-        0 15px 45px rgba(0,0,0,.5);
-}
-
-.colonist-header {
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-}
-
-#menu-avatar {
-    position: relative;
-
-    width: 58px;
-    height: 58px;
-
-    flex-shrink: 0;
-
-    overflow: hidden;
-
-    background: #303b35;
-
-    border-radius: 10px;
-}
-
-#menu-avatar .npc-head {
-    transform: scale(1.1);
-
-    left: 21px;
-    top: 8px;
-}
-
-#menu-avatar .npc-hair {
-    transform: scale(1.1);
-
-    left: 20px;
-    top: 6px;
-}
-
-#menu-avatar .npc-body {
-    transform: scale(1.1);
-
-    left: 19px;
-    top: 27px;
-}
-
-#menu-avatar .npc-arm-left,
-#menu-avatar .npc-arm-right,
-#menu-avatar .npc-leg-left,
-#menu-avatar .npc-leg-right,
-#menu-avatar .npc-shadow {
     display: none;
 }
 
-#colonist-menu h2 {
-    margin: 0;
-
-    font-size: 19px;
-}
-
-#colonist-menu p {
-    color: #9aa49c;
-
-    font-size: 12px;
-
-    line-height: 1.45;
-}
-
-.menu-section {
-    margin-top: 17px;
-}
-
-.menu-section h3 {
-    margin: 0 0 8px;
-
-    color: #8e998f;
-
-    font-size: 11px;
-
-    text-transform: uppercase;
-
-    letter-spacing: 1px;
-}
-
-.stat-row {
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    font-size: 12px;
-}
-
-.stat-bar {
-    flex: 1;
-
-    height: 7px;
-
-    overflow: hidden;
-
-    background: #293029;
-
-    border-radius: 10px;
-}
-
-#health-bar {
-    width: 100%;
-    height: 100%;
-
-    background: #6da66f;
-}
-
-#skills-container,
-#traits-container {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 5px;
-}
-
-.skill-row {
-    display: flex;
-
-    justify-content: space-between;
-
-    padding: 6px 8px;
-
-    background: rgba(255,255,255,.04);
-
-    border-radius: 6px;
-
-    font-size: 11px;
-}
-
-.trait {
-    display: inline-block;
-
-    padding: 5px 7px;
-
-    margin: 2px;
-
-    background: rgba(255,255,255,.06);
-
-    border-radius: 6px;
-
-    font-size: 10px;
-}
-
-
 /* =========================
-   MOVER
+   MODO MOVER
 ========================= */
 
 #move-mode {
     position: fixed;
 
-    top: 75px;
+    top: 18px;
     left: 50%;
 
     transform: translateX(-50%);
 
-    z-index: 1200;
+    z-index: 800;
 
-    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 
-    background: rgba(15,20,16,.95);
+    padding: 8px 10px;
 
-    border:
-        1px solid rgba(255,255,255,.1);
+    background: rgba(18,23,19,.96);
 
-    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 9px;
 
-    font-size: 13px;
+    color: #c5ccc6;
+
+    font-size: 11px;
 }
 
 #cancel-move {
-    margin-left: 12px;
-
-    padding: 5px 9px;
+    padding: 5px 8px;
 
     border: 0;
+    border-radius: 5px;
 
-    border-radius: 6px;
+    background: #303a31;
+    color: #b9c1ba;
 
-    background: #713d3d;
-
-    color: white;
+    font-size: 10px;
 
     cursor: pointer;
 }
 
-.move-marker {
-    position: absolute;
-
-    width: 30px;
-    height: 30px;
-
-    transform: translate(-50%, -50%);
-
-    border:
-        2px solid #f0d55c;
-
-    border-radius: 50%;
-
-    background: rgba(240,213,92,.15);
-
-    pointer-events: none;
-
-    z-index: 90;
-}
+/* =========================
+   OCULTO
+========================= */
 
 .hidden {
     display: none !important;
 }
 
+/* =========================
+   SCROLLBAR
+========================= */
+
+#colonist-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+#colonist-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#colonist-menu::-webkit-scrollbar-thumb {
+    background: #465148;
+    border-radius: 4px;
+}
 
 /* =========================
    MÓVIL
@@ -858,33 +753,63 @@ body {
 
 @media (max-width: 600px) {
 
-    #colonist-list {
-        left: 10px;
-        top: 78px;
-    }
-
-    .colonist-card {
-        width: 80px;
-    }
-
-    #card-avatar {
-        width: 66px;
-    }
-
     #top-info {
         top: 10px;
         left: 10px;
         right: 10px;
     }
 
+    #colonist-list {
+        top: 52px;
+        left: 10px;
+    }
+
+    .colonist-card {
+        width: 145px;
+        min-height: 54px;
+        padding: 6px 8px;
+    }
+
+    .card-name {
+        font-size: 12px;
+    }
+
+    #colonist-menu {
+        top: auto;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+
+        width: auto;
+        max-height: 55vh;
+    }
+
     #colony-info {
         left: 10px;
         bottom: 10px;
+
+        gap: 7px;
+        padding: 7px 8px;
     }
 
-    .info-item {
-        min-width: 85px;
-        padding: 7px;
+    #zoom-controls {
+        right: 10px;
+        bottom: 10px;
+
+        padding: 7px 8px;
     }
 
+    #zoom-slider {
+        width: 90px;
+    }
+
+    #action-menu {
+        width: 160px;
+    }
+
+    #move-mode {
+        max-width: calc(100vw - 20px);
+
+        font-size: 10px;
+    }
 }
