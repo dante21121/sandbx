@@ -1,255 +1,143 @@
-const viewport = document.getElementById("map-viewport");
-const world = document.getElementById("world");
-const map = document.getElementById("map");
+* {
+    box-sizing: border-box;
+}
 
-const colonistCard = document.getElementById("colonist-card");
-const cardAvatar = document.getElementById("card-avatar");
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 
-const actionMenu = document.getElementById("action-menu");
+    font-family: Arial, sans-serif;
 
-const colonistMenu = document.getElementById("colonist-menu");
+    background: #111711;
+    color: white;
+}
 
-const moveMode = document.getElementById("move-mode");
-const cancelMove = document.getElementById("cancel-move");
-
-const zoomIn = document.getElementById("zoom-in");
-const zoomOut = document.getElementById("zoom-out");
-const zoomLevel = document.getElementById("zoom-level");
+#game {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+}
 
 
 /* =========================
-   CONFIGURACIÓN
+   MAPA
 ========================= */
 
-const TILE_SIZE = 40;
+#map-viewport {
+    position: absolute;
+    inset: 0;
 
-const WORLD_WIDTH = 100;
-const WORLD_HEIGHT = 60;
+    overflow: hidden;
 
-let zoom = 1;
+    background: #304d32;
+}
 
-let cameraX = 0;
-let cameraY = 0;
+#world {
+    position: absolute;
 
-let selectedColonist = false;
-let movingMode = false;
+    left: 0;
+    top: 0;
 
-let moveTarget = null;
-let autonomousTarget = null;
+    width: 4000px;
+    height: 2400px;
 
-let waitUntil = 0;
+    transform-origin: 0 0;
 
-let lastTime = performance.now();
+    will-change: transform;
+}
+
+#map {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    width: 4000px;
+    height: 2400px;
+
+    background-color: #304d32;
+
+    background-image:
+        linear-gradient(
+            rgba(255,255,255,.035) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,.035) 1px,
+            transparent 1px
+        );
+
+    background-size: 40px 40px;
+}
 
 
 /* =========================
-   COLONIA
+   ÁRBOLES
 ========================= */
 
-const colony = {
+.tree {
+    position: absolute;
 
-    day: 1,
-    yearDay: 1,
-    hour: 6,
-    minute: 0
+    width: 48px;
+    height: 70px;
 
-};
+    transform-origin: bottom center;
 
+    pointer-events: auto;
 
-/* =========================
-   DATOS ALEATORIOS
-========================= */
-
-const names = [
-    "Elias",
-    "Mateo",
-    "Lucas",
-    "Bruno",
-    "Dante",
-    "Nico",
-    "Leo",
-    "Tomás",
-    "Santiago",
-    "Thiago",
-    "Alex",
-    "Milo",
-    "Valentín",
-    "Adrián",
-    "Gabriel",
-    "Martín",
-    "Franco",
-    "Lautaro"
-];
-
-
-const femaleNames = [
-    "Sofía",
-    "Emma",
-    "Valentina",
-    "Martina",
-    "Camila",
-    "Lucía",
-    "Julia",
-    "Mía",
-    "Clara",
-    "Abril",
-    "Elena",
-    "Alma"
-];
-
-
-const traitsList = [
-    "Trabajador",
-    "Resistente",
-    "Curioso",
-    "Inteligente",
-    "Rápido",
-    "Fuerte",
-    "Creativo",
-    "Sociable",
-    "Paciente",
-    "Valiente",
-    "Organizado",
-    "Perceptivo"
-];
-
-
-function randomItem(array) {
-
-    return array[
-        Math.floor(
-            Math.random() * array.length
-        )
-    ];
-
+    z-index: 20;
 }
 
+.tree-shadow {
+    position: absolute;
 
-function randomNumber(min, max) {
+    left: 7px;
+    bottom: 2px;
 
-    return Math.floor(
-        Math.random() *
-        (max - min + 1)
-    ) + min;
+    width: 35px;
+    height: 10px;
 
+    background: rgba(0,0,0,.25);
+
+    border-radius: 50%;
 }
 
+.tree-trunk {
+    position: absolute;
 
-function generateSkills() {
+    left: 20px;
+    bottom: 8px;
 
-    return {
+    width: 9px;
+    height: 30px;
 
-        Agricultura:
-            randomNumber(1, 10),
+    background: #69472d;
 
-        Construcción:
-            randomNumber(1, 10),
-
-        Cocina:
-            randomNumber(1, 10),
-
-        Medicina:
-            randomNumber(1, 10),
-
-        Investigación:
-            randomNumber(1, 10),
-
-        Artesanía:
-            randomNumber(1, 10)
-
-    };
-
+    border-radius: 3px;
 }
 
+.tree-crown {
+    position: absolute;
 
-function generateTraits() {
+    left: 2px;
+    top: 0;
 
-    const traits = [];
+    width: 44px;
+    height: 45px;
 
-    while (traits.length < 3) {
+    background: #1b4327;
 
-        const trait =
-            randomItem(traitsList);
+    border-radius: 50%;
 
-        if (!traits.includes(trait)) {
-
-            traits.push(trait);
-
-        }
-
-    }
-
-    return traits;
-
-}
-
-
-function generateDescription(name, age, gender, skills, traits) {
-
-    const bestSkill =
-        Object.entries(skills)
-            .sort((a, b) => b[1] - a[1])[0][0];
-
-    const genderText =
-        gender === "Hombre"
-            ? "Es un"
-            : "Es una";
-
-    return `${name} tiene ${age} años. ${genderText} colono ${traits[0].toLowerCase()} y ${traits[1].toLowerCase()}, con especial talento en ${bestSkill.toLowerCase()}.`;
-
-}
-
-
-function generateColonistData() {
-
-    const gender =
-        Math.random() < 0.5
-            ? "Hombre"
-            : "Mujer";
-
-
-    const name =
-        gender === "Hombre"
-            ? randomItem(names)
-            : randomItem(femaleNames);
-
-
-    const age =
-        randomNumber(18, 55);
-
-
-    const health =
-        randomNumber(75, 100);
-
-
-    const skills =
-        generateSkills();
-
-
-    const traits =
-        generateTraits();
-
-
-    return {
-
-        name,
-        age,
-        gender,
-        health,
-        skills,
-        traits,
-
-        description:
-            generateDescription(
-                name,
-                age,
-                gender,
-                skills,
-                traits
-            )
-
-    };
-
+    box-shadow:
+        8px 8px 0 #25552e,
+        -7px 10px 0 #2a6034,
+        2px -6px 0 #214c2b;
 }
 
 
@@ -257,1021 +145,326 @@ function generateColonistData() {
    COLONO
 ========================= */
 
-const randomData =
-    generateColonistData();
+#colonist {
+    position: absolute;
 
+    left: 0;
+    top: 0;
 
-const colonist = {
+    width: 38px;
+    height: 60px;
 
-    ...randomData,
+    transform: translate(-50%, -100%);
 
-    x: 50 * TILE_SIZE,
+    z-index: 100;
 
-    y: 30 * TILE_SIZE,
+    cursor: pointer;
 
-    speed: 80
-
-};
-
-
-/* =========================
-   CREAR NPC
-========================= */
-
-function createColonist() {
-
-    const npc =
-        document.createElement("div");
-
-    npc.id = "colonist";
-
-    npc.innerHTML = `
-
-        <div class="npc-shadow"></div>
-
-        <div class="npc-head"></div>
-
-        <div class="npc-hair"></div>
-
-        <div class="npc-body"></div>
-
-        <div class="npc-arm-left"></div>
-
-        <div class="npc-arm-right"></div>
-
-        <div class="npc-leg-left"></div>
-
-        <div class="npc-leg-right"></div>
-
-    `;
-
-    world.appendChild(npc);
-
-    return npc;
-
+    pointer-events: auto;
 }
 
+.npc-shadow {
+    position: absolute;
 
-const colonistElement =
-    createColonist();
+    left: 4px;
+    bottom: 0;
 
+    width: 30px;
+    height: 9px;
 
-/* =========================
-   AVATAR
-========================= */
+    background: rgba(0,0,0,.35);
 
-function createAvatar(element) {
-
-    element.innerHTML = `
-
-        <div class="npc-head"></div>
-
-        <div class="npc-hair"></div>
-
-        <div class="npc-body"></div>
-
-    `;
-
+    border-radius: 50%;
 }
 
+.npc-head {
+    position: absolute;
 
-createAvatar(cardAvatar);
+    left: 11px;
+    top: 5px;
 
-createAvatar(
-    document.getElementById("menu-avatar")
-);
+    width: 16px;
+    height: 18px;
 
+    background: #d7a477;
 
-/* =========================
-   POSICIÓN NPC
-========================= */
+    border-radius: 50%;
 
-function updateColonistPosition() {
-
-    colonistElement.style.left =
-        colonist.x + "px";
-
-    colonistElement.style.top =
-        colonist.y + "px";
-
+    z-index: 2;
 }
 
+.npc-hair {
+    position: absolute;
 
-/* =========================
-   SELECCIÓN
-========================= */
+    left: 10px;
+    top: 3px;
 
-function selectColonist() {
+    width: 18px;
+    height: 9px;
 
-    selectedColonist = true;
+    background: #3b281d;
 
-    colonistElement.classList.add("selected");
+    border-radius: 10px 10px 3px 3px;
 
-    colonistCard.classList.add("selected");
-
-    closeActionMenu();
-
-    closeColonistMenu();
-
+    z-index: 3;
 }
 
+.npc-body {
+    position: absolute;
 
-/* =========================
-   CLICK EN TARJETA
-========================= */
+    left: 9px;
+    top: 22px;
 
-colonistCard.addEventListener(
-    "click",
-    function(event) {
+    width: 20px;
+    height: 25px;
 
-        event.stopPropagation();
+    background: #596b8c;
 
-        selectColonist();
-
-    }
-);
-
-
-/* =========================
-   DOBLE CLICK EN TARJETA
-========================= */
-
-colonistCard.addEventListener(
-    "dblclick",
-    function(event) {
-
-        event.stopPropagation();
-
-        selectColonist();
-
-        openColonistMenu();
-
-    }
-);
-
-
-/* =========================
-   CLICK NPC
-========================= */
-
-colonistElement.addEventListener(
-    "click",
-    function(event) {
-
-        event.stopPropagation();
-
-        selectColonist();
-
-    }
-);
-
-
-/* =========================
-   DOBLE CLICK NPC
-========================= */
-
-colonistElement.addEventListener(
-    "dblclick",
-    function(event) {
-
-        event.stopPropagation();
-
-        selectColonist();
-
-        openColonistMenu();
-
-    }
-);
-
-
-/* =========================
-   FICHA
-========================= */
-
-function openColonistMenu() {
-
-    updateColonistMenu();
-
-    colonistMenu.classList.remove(
-        "hidden"
-    );
-
-    requestAnimationFrame(() => {
-
-        positionColonistMenu();
-
-    });
-
+    border-radius: 6px 6px 4px 4px;
 }
 
+.npc-arm-left,
+.npc-arm-right {
+    position: absolute;
 
-function closeColonistMenu() {
+    top: 25px;
 
-    colonistMenu.classList.add(
-        "hidden"
-    );
+    width: 6px;
+    height: 20px;
 
+    background: #d7a477;
+
+    border-radius: 4px;
 }
 
-
-function updateColonistMenu() {
-
-    document.getElementById(
-        "menu-name"
-    ).textContent =
-        colonist.name;
-
-
-    document.getElementById(
-        "menu-basic-info"
-    ).textContent =
-        `${colonist.age} años · ${colonist.gender}`;
-
-
-    document.getElementById(
-        "menu-description"
-    ).textContent =
-        colonist.description;
-
-
-    document.getElementById(
-        "health-value"
-    ).textContent =
-        colonist.health;
-
-
-    document.getElementById(
-        "health-bar"
-    ).style.width =
-        colonist.health + "%";
-
-
-    const skills =
-        document.getElementById(
-            "skills-container"
-        );
-
-    skills.innerHTML = "";
-
-
-    for (const skill in colonist.skills) {
-
-        const row =
-            document.createElement("div");
-
-        row.className =
-            "skill-row";
-
-        row.innerHTML = `
-
-            <span>${skill}</span>
-
-            <strong>
-                ${colonist.skills[skill]}
-            </strong>
-
-        `;
-
-        skills.appendChild(row);
-
-    }
-
-
-    const traits =
-        document.getElementById(
-            "traits-container"
-        );
-
-    traits.innerHTML = "";
-
-
-    colonist.traits.forEach(
-        trait => {
-
-            const element =
-                document.createElement("span");
-
-            element.className =
-                "trait";
-
-            element.textContent =
-                trait;
-
-            traits.appendChild(element);
-
-        }
-    );
-
+.npc-arm-left {
+    left: 4px;
 }
 
+.npc-arm-right {
+    right: 4px;
+}
 
-function positionColonistMenu() {
+.npc-leg-left,
+.npc-leg-right {
+    position: absolute;
 
-    const rect =
-        colonistElement
-            .getBoundingClientRect();
+    top: 45px;
 
+    width: 7px;
+    height: 12px;
 
-    const menuWidth =
-        colonistMenu.offsetWidth;
+    background: #262b38;
 
-    const menuHeight =
-        colonistMenu.offsetHeight;
+    border-radius: 3px;
+}
 
+.npc-leg-left {
+    left: 10px;
+}
 
-    let left =
-        rect.right + 15;
-
-    let top =
-        rect.top;
-
-
-    if (
-        left + menuWidth >
-        window.innerWidth
-    ) {
-
-        left =
-            rect.left -
-            menuWidth -
-            15;
-
-    }
-
-
-    if (left < 10) {
-
-        left = 10;
-
-    }
-
-
-    if (
-        top + menuHeight >
-        window.innerHeight
-    ) {
-
-        top =
-            window.innerHeight -
-            menuHeight -
-            10;
-
-    }
-
-
-    if (top < 10) {
-
-        top = 10;
-
-    }
-
-
-    colonistMenu.style.left =
-        left + "px";
-
-    colonistMenu.style.top =
-        top + "px";
-
+.npc-leg-right {
+    right: 10px;
 }
 
 
 /* =========================
-   CLICK EN MAPA
+   SIN ESTELA AL SELECCIONAR
 ========================= */
 
-viewport.addEventListener(
-    "click",
-    function(event) {
-
-        if (!selectedColonist) {
-
-            return;
-
-        }
-
-
-        if (movingMode) {
-
-            setMoveTarget(
-                event.clientX,
-                event.clientY
-            );
-
-            return;
-
-        }
-
-
-        if (
-            event.target.closest(
-                "#colonist"
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        if (
-            event.target.closest(
-                "#colonist-list"
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        if (
-            event.target.closest(
-                "#action-menu"
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        /* ÁRBOL */
-
-        const tree =
-            event.target.closest(
-                ".tree"
-            );
-
-
-        if (tree) {
-
-            showTreeActions(
-                tree,
-                event.clientX,
-                event.clientY
-            );
-
-            return;
-
-        }
-
-
-        /* SUELO */
-
-        showGroundActions(
-            event.clientX,
-            event.clientY
-        );
-
-    }
-);
-
-
-/* =========================
-   MENÚ DE ACCIONES
-========================= */
-
-function showGroundActions(x, y) {
-
-    actionMenu.innerHTML = `
-
-        <div class="action-title">
-            Suelo
-        </div>
-
-        <button
-            class="action-button"
-            data-action="move"
-        >
-            <span>🚶</span>
-
-            <div>
-                <strong>Mover</strong>
-
-                <small>
-                    Ir hasta aquí
-                </small>
-            </div>
-
-        </button>
-
-
-        <button
-            class="action-button"
-            data-action="wait"
-        >
-            <span>⏳</span>
-
-            <div>
-                <strong>Esperar</strong>
-
-                <small>
-                    Quedarse aquí
-                </small>
-            </div>
-
-        </button>
-
-    `;
-
-
-    addActionListeners();
-
-    showActionMenu(x, y);
-
+#colonist.selected {
+    filter: none;
 }
 
-
-function showTreeActions(tree, x, y) {
-
-    actionMenu.innerHTML = `
-
-        <div class="action-title">
-            Árbol
-        </div>
-
-        <button
-            class="action-button"
-            data-action="cut-tree"
-        >
-            <span>🪓</span>
-
-            <div>
-                <strong>Talar</strong>
-
-                <small>
-                    Cortar árbol
-                </small>
-            </div>
-
-        </button>
-
-    `;
-
-
-    actionMenu.dataset.treeId =
-        Math.random().toString(36);
-
-
-    tree.dataset.actionTree =
-        actionMenu.dataset.treeId;
-
-
-    addActionListeners();
-
-    showActionMenu(x, y);
-
-}
-
-
-function addActionListeners() {
-
-    actionMenu
-        .querySelectorAll(
-            ".action-button"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                function(event) {
-
-                    event.stopPropagation();
-
-
-                    const action =
-                        button.dataset.action;
-
-
-                    if (
-                        action === "move"
-                    ) {
-
-                        startMoveMode();
-
-                    }
-
-
-                    if (
-                        action === "wait"
-                    ) {
-
-                        waitUntil =
-                            performance.now()
-                            + 5000;
-
-                        moveTarget = null;
-
-                        autonomousTarget =
-                            null;
-
-                        closeActionMenu();
-
-                    }
-
-
-                    if (
-                        action === "cut-tree"
-                    ) {
-
-                        cutSelectedTree();
-
-                    }
-
-                }
-            );
-
-        });
-
-}
-
-
-function showActionMenu(x, y) {
-
-    actionMenu.classList.remove(
-        "hidden"
-    );
-
-
-    let left =
-        x + 10;
-
-    let top =
-        y + 10;
-
-
-    requestAnimationFrame(() => {
-
-        const width =
-            actionMenu.offsetWidth;
-
-        const height =
-            actionMenu.offsetHeight;
-
-
-        if (
-            left + width >
-            window.innerWidth
-        ) {
-
-            left =
-                x - width - 10;
-
-        }
-
-
-        if (
-            top + height >
-            window.innerHeight
-        ) {
-
-            top =
-                y - height - 10;
-
-        }
-
-
-        left =
-            Math.max(6, left);
-
-        top =
-            Math.max(6, top);
-
-
-        actionMenu.style.left =
-            left + "px";
-
-        actionMenu.style.top =
-            top + "px";
-
-    });
-
-}
-
-
-function closeActionMenu() {
-
-    actionMenu.classList.add(
-        "hidden"
-    );
-
+#colonist.selected::after {
+    display: none;
 }
 
 
 /* =========================
-   TALAR ÁRBOL
+   TARJETA
 ========================= */
 
-function cutSelectedTree() {
+#colonist-list {
+    position: fixed;
 
-    const treeId =
-        actionMenu.dataset.treeId;
+    left: 18px;
+    top: 85px;
 
+    z-index: 500;
+}
 
-    const tree =
-        document.querySelector(
-            `.tree[data-action-tree="${treeId}"]`
-        );
+.colonist-card {
+    width: 92px;
 
+    padding: 7px;
 
-    if (!tree) {
+    background: rgba(19,24,20,.95);
 
-        closeActionMenu();
+    border: 1px solid rgba(255,255,255,.1);
 
-        return;
+    border-radius: 12px;
 
-    }
+    cursor: pointer;
 
+    transition:
+        transform .12s,
+        border-color .12s,
+        box-shadow .12s;
+}
 
-    tree.remove();
+.colonist-card:hover {
+    transform: translateY(-2px);
+}
 
-    closeActionMenu();
+.colonist-card.selected {
+    border-color: #e6c84f;
 
+    box-shadow:
+        0 0 0 2px rgba(230,200,79,.2);
+}
+
+#card-avatar {
+    position: relative;
+
+    width: 78px;
+    height: 72px;
+
+    overflow: hidden;
+
+    background: #303b35;
+
+    border-radius: 9px;
+}
+
+#card-avatar .npc-head {
+    transform: scale(1.4);
+
+    left: 31px;
+    top: 13px;
+}
+
+#card-avatar .npc-hair {
+    transform: scale(1.4);
+
+    left: 30px;
+    top: 10px;
+}
+
+#card-avatar .npc-body {
+    transform: scale(1.4);
+
+    left: 28px;
+    top: 39px;
+}
+
+#card-avatar .npc-arm-left,
+#card-avatar .npc-arm-right,
+#card-avatar .npc-leg-left,
+#card-avatar .npc-leg-right,
+#card-avatar .npc-shadow {
+    display: none;
+}
+
+.card-name {
+    margin-top: 6px;
+
+    text-align: center;
+
+    font-size: 13px;
+    font-weight: bold;
 }
 
 
 /* =========================
-   MOVER
+   INFO SUPERIOR
 ========================= */
 
-function startMoveMode() {
+#top-info {
+    position: fixed;
 
-    movingMode = true;
+    top: 18px;
+    left: 18px;
+    right: 18px;
 
-    closeActionMenu();
+    z-index: 300;
 
-    moveMode.classList.remove(
-        "hidden"
-    );
+    display: flex;
 
-    viewport.style.cursor =
-        "crosshair";
+    justify-content: space-between;
+    align-items: center;
 
+    padding: 12px 16px;
+
+    background: rgba(15,20,16,.88);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    border-radius: 12px;
+
+    font-size: 14px;
 }
 
+.colony-title {
+    display: flex;
 
-cancelMove.addEventListener(
-    "click",
-    function(event) {
+    align-items: center;
 
-        event.stopPropagation();
+    gap: 9px;
 
-        movingMode = false;
-
-        moveMode.classList.add(
-            "hidden"
-        );
-
-        viewport.style.cursor =
-            "default";
-
-    }
-);
-
-
-function setMoveTarget(
-    screenX,
-    screenY
-) {
-
-    const rect =
-        viewport.getBoundingClientRect();
-
-
-    const viewportX =
-        screenX - rect.left;
-
-    const viewportY =
-        screenY - rect.top;
-
-
-    const worldX =
-        (viewportX - cameraX) /
-        zoom;
-
-    const worldY =
-        (viewportY - cameraY) /
-        zoom;
-
-
-    moveTarget = {
-
-        x: Math.max(
-            30,
-            Math.min(
-                WORLD_WIDTH *
-                TILE_SIZE - 30,
-                worldX
-            )
-        ),
-
-        y: Math.max(
-            30,
-            Math.min(
-                WORLD_HEIGHT *
-                TILE_SIZE - 30,
-                worldY
-            )
-        )
-
-    };
-
-
-    autonomousTarget = null;
-
-
-    createMoveMarker(
-        moveTarget.x,
-        moveTarget.y
-    );
-
-
-    movingMode = false;
-
-    moveMode.classList.add(
-        "hidden"
-    );
-
-    viewport.style.cursor =
-        "default";
-
+    font-weight: bold;
 }
 
-
-function createMoveMarker(x, y) {
-
-    const old =
-        document.querySelector(
-            ".move-marker"
-        );
-
-
-    if (old) {
-
-        old.remove();
-
-    }
-
-
-    const marker =
-        document.createElement("div");
-
-
-    marker.className =
-        "move-marker";
-
-
-    marker.style.left =
-        x + "px";
-
-    marker.style.top =
-        y + "px";
-
-
-    world.appendChild(marker);
-
+.title-icon {
+    color: #d6bd4d;
 }
 
 
 /* =========================
-   MOVIMIENTO
+   INFO COLONIA
 ========================= */
 
-function chooseRandomTarget() {
+#colony-info {
+    position: fixed;
 
-    autonomousTarget = {
+    left: 18px;
+    bottom: 18px;
 
-        x:
-            8 * TILE_SIZE +
-            Math.random() *
-            (WORLD_WIDTH - 16) *
-            TILE_SIZE,
+    z-index: 300;
 
-        y:
-            8 * TILE_SIZE +
-            Math.random() *
-            (WORLD_HEIGHT - 16) *
-            TILE_SIZE
+    display: flex;
 
-    };
-
+    gap: 10px;
 }
 
+.info-item {
+    min-width: 105px;
 
-function moveColonist(delta) {
+    padding: 9px 12px;
 
-    if (
-        performance.now() <
-        waitUntil
-    ) {
+    display: flex;
 
-        return;
+    flex-direction: column;
 
-    }
+    gap: 3px;
 
+    background: rgba(15,20,16,.9);
 
-    let target =
-        moveTarget ||
-        autonomousTarget;
+    border:
+        1px solid rgba(255,255,255,.08);
 
+    border-radius: 10px;
 
-    if (!target) {
-
-        chooseRandomTarget();
-
-        target =
-            autonomousTarget;
-
-    }
-
-
-    const dx =
-        target.x - colonist.x;
-
-    const dy =
-        target.y - colonist.y;
-
-
-    const distance =
-        Math.sqrt(
-            dx * dx +
-            dy * dy
-        );
-
-
-    if (distance < 5) {
-
-        if (moveTarget) {
-
-            moveTarget = null;
-
-
-            const marker =
-                document.querySelector(
-                    ".move-marker"
-                );
-
-
-            if (marker) {
-
-                marker.remove();
-
-            }
-
-        } else {
-
-            autonomousTarget = null;
-
-        }
-
-        return;
-
-    }
-
-
-    colonist.x +=
-        (dx / distance) *
-        colonist.speed *
-        delta;
-
-
-    colonist.y +=
-        (dy / distance) *
-        colonist.speed *
-        delta;
-
+    font-size: 13px;
 }
 
+.info-label {
+    color: #89958c;
 
-/* =========================
-   CÁMARA
-========================= */
+    font-size: 9px;
 
-function updateWorldTransform() {
-
-    world.style.transform =
-        `translate3d(
-            ${cameraX}px,
-            ${cameraY}px,
-            0
-        ) scale(${zoom})`;
-
-}
-
-
-function centerCameraOnColonist() {
-
-    cameraX =
-        viewport.clientWidth / 2 -
-        colonist.x * zoom;
-
-    cameraY =
-        viewport.clientHeight / 2 -
-        colonist.y * zoom;
-
-
-    updateWorldTransform();
-
+    letter-spacing: 1px;
 }
 
 
@@ -1279,397 +472,419 @@ function centerCameraOnColonist() {
    ZOOM
 ========================= */
 
-function changeZoom(
-    newZoom,
-    mouseX,
-    mouseY
-) {
+#zoom-controls {
+    position: fixed;
 
-    const oldZoom =
-        zoom;
+    right: 18px;
+    bottom: 18px;
 
+    z-index: 300;
 
-    newZoom =
-        Math.max(
-            .5,
-            Math.min(
-                2,
-                newZoom
-            )
-        );
+    display: flex;
 
+    align-items: center;
 
-    if (newZoom === oldZoom) {
+    gap: 7px;
 
-        return;
+    padding: 6px;
 
-    }
+    background: rgba(15,20,16,.9);
 
-
-    const rect =
-        viewport.getBoundingClientRect();
-
-
-    const screenX =
-        mouseX - rect.left;
-
-    const screenY =
-        mouseY - rect.top;
-
-
-    const worldX =
-        (screenX - cameraX) /
-        oldZoom;
-
-    const worldY =
-        (screenY - cameraY) /
-        oldZoom;
-
-
-    zoom =
-        newZoom;
-
-
-    cameraX =
-        screenX -
-        worldX * zoom;
-
-    cameraY =
-        screenY -
-        worldY * zoom;
-
-
-    updateWorldTransform();
-
-
-    zoomLevel.textContent =
-        Math.round(
-            zoom * 100
-        ) + "%";
-
+    border-radius: 10px;
 }
 
+#zoom-controls button {
+    width: 32px;
+    height: 32px;
 
-zoomIn.addEventListener(
-    "click",
-    function() {
+    border: 0;
 
-        changeZoom(
-            zoom + .1,
-            window.innerWidth / 2,
-            window.innerHeight / 2
-        );
+    border-radius: 7px;
 
-    }
-);
+    background: #303a32;
 
+    color: white;
 
-zoomOut.addEventListener(
-    "click",
-    function() {
+    font-size: 20px;
 
-        changeZoom(
-            zoom - .1,
-            window.innerWidth / 2,
-            window.innerHeight / 2
-        );
+    cursor: pointer;
+}
 
-    }
-);
+#zoom-level {
+    min-width: 50px;
 
+    text-align: center;
 
-viewport.addEventListener(
-    "wheel",
-    function(event) {
-
-        event.preventDefault();
-
-
-        const amount =
-            event.deltaY > 0
-                ? -.1
-                : .1;
-
-
-        changeZoom(
-            zoom + amount,
-            event.clientX,
-            event.clientY
-        );
-
-    },
-    {
-        passive: false
-    }
-);
-
-
-/* =========================
-   ÁRBOLES
-========================= */
-
-function createTrees() {
-
-    const treeCount = 90;
-
-
-    for (
-        let i = 0;
-        i < treeCount;
-        i++
-    ) {
-
-        let x;
-        let y;
-
-
-        do {
-
-            x =
-                Math.random() *
-                WORLD_WIDTH *
-                TILE_SIZE;
-
-            y =
-                Math.random() *
-                WORLD_HEIGHT *
-                TILE_SIZE;
-
-
-        } while (
-
-            Math.abs(
-                x - colonist.x
-            ) < 8 * TILE_SIZE &&
-
-            Math.abs(
-                y - colonist.y
-            ) < 8 * TILE_SIZE
-
-        );
-
-
-        const tree =
-            document.createElement(
-                "div"
-            );
-
-
-        tree.className =
-            "tree";
-
-
-        tree.style.left =
-            x + "px";
-
-        tree.style.top =
-            y + "px";
-
-
-        tree.style.transform =
-            `translateX(-50%)
-             scale(
-                ${.8 + Math.random() * .45}
-             )`;
-
-
-        tree.innerHTML = `
-
-            <div class="tree-shadow"></div>
-
-            <div class="tree-trunk"></div>
-
-            <div class="tree-crown"></div>
-
-        `;
-
-
-        world.appendChild(tree);
-
-    }
-
+    font-size: 12px;
 }
 
 
 /* =========================
-   TIEMPO
+   MENÚ DE ACCIONES
 ========================= */
 
-function updateTime() {
+#action-menu {
+    position: fixed;
 
-    colony.minute += 5;
+    z-index: 1000;
 
+    width: 175px;
 
-    if (colony.minute >= 60) {
+    padding: 6px;
 
-        colony.minute = 0;
+    background: rgba(18,23,19,.98);
 
-        colony.hour++;
+    border:
+        1px solid rgba(255,255,255,.12);
 
-    }
+    border-radius: 9px;
 
+    box-shadow:
+        0 8px 25px rgba(0,0,0,.4);
+}
 
-    if (colony.hour >= 24) {
+.action-title {
+    padding: 5px 7px 6px;
 
-        colony.hour = 0;
+    margin-bottom: 2px;
 
-        colony.day++;
+    color: #9da79f;
 
-        colony.yearDay++;
+    font-size: 11px;
 
+    border-bottom:
+        1px solid rgba(255,255,255,.07);
+}
 
-        if (colony.yearDay > 365) {
+.action-button {
+    width: 100%;
 
-            colony.yearDay = 1;
+    display: flex;
 
-        }
+    align-items: center;
 
-    }
+    gap: 8px;
 
+    padding: 7px;
 
-    document.getElementById(
-        "colony-days"
-    ).textContent =
-        `Día ${colony.day}`;
+    border: 0;
 
+    border-radius: 6px;
 
-    document.getElementById(
-        "colony-time"
-    ).textContent =
+    background: transparent;
 
-        `${String(colony.hour).padStart(2, "0")}:` +
-        `${String(colony.minute).padStart(2, "0")}`;
+    color: white;
 
+    text-align: left;
 
-    document.getElementById(
-        "colony-year-day"
-    ).textContent =
-        `Día ${colony.yearDay} / 365`;
+    cursor: pointer;
+}
 
+.action-button:hover {
+    background: rgba(255,255,255,.08);
+}
+
+.action-button > span {
+    font-size: 16px;
+}
+
+.action-button div {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 1px;
+}
+
+.action-button strong {
+    font-size: 12px;
+}
+
+.action-button small {
+    color: #7f8a82;
+
+    font-size: 9px;
 }
 
 
 /* =========================
-   CERRAR MENÚS
+   FICHA
 ========================= */
 
-document.addEventListener(
-    "click",
-    function(event) {
+#colonist-menu {
+    position: fixed;
 
-        if (
-            !event.target.closest(
-                "#colonist-menu"
-            ) &&
+    z-index: 1100;
 
-            !event.target.closest(
-                "#colonist"
-            ) &&
+    width: 290px;
 
-            !event.target.closest(
-                "#colonist-card"
-            )
-        ) {
+    max-height:
+        calc(100vh - 40px);
 
-            closeColonistMenu();
+    overflow-y: auto;
 
-        }
+    padding: 16px;
 
-    }
-);
+    background: rgba(17,22,18,.98);
 
+    border:
+        1px solid rgba(255,255,255,.12);
 
-/* =========================
-   GAME LOOP
-========================= */
+    border-radius: 14px;
 
-function gameLoop(currentTime) {
+    box-shadow:
+        0 15px 45px rgba(0,0,0,.5);
+}
 
-    const delta =
-        Math.min(
-            (currentTime - lastTime) / 1000,
-            .05
-        );
+.colonist-header {
+    display: flex;
 
+    align-items: center;
 
-    lastTime =
-        currentTime;
+    gap: 12px;
+}
 
+#menu-avatar {
+    position: relative;
 
-    moveColonist(delta);
+    width: 58px;
+    height: 58px;
 
-    updateColonistPosition();
+    flex-shrink: 0;
 
+    overflow: hidden;
 
-    requestAnimationFrame(
-        gameLoop
-    );
+    background: #303b35;
 
+    border-radius: 10px;
+}
+
+#menu-avatar .npc-head {
+    transform: scale(1.1);
+
+    left: 21px;
+    top: 8px;
+}
+
+#menu-avatar .npc-hair {
+    transform: scale(1.1);
+
+    left: 20px;
+    top: 6px;
+}
+
+#menu-avatar .npc-body {
+    transform: scale(1.1);
+
+    left: 19px;
+    top: 27px;
+}
+
+#menu-avatar .npc-arm-left,
+#menu-avatar .npc-arm-right,
+#menu-avatar .npc-leg-left,
+#menu-avatar .npc-leg-right,
+#menu-avatar .npc-shadow {
+    display: none;
+}
+
+#colonist-menu h2 {
+    margin: 0;
+
+    font-size: 19px;
+}
+
+#colonist-menu p {
+    color: #9aa49c;
+
+    font-size: 12px;
+
+    line-height: 1.45;
+}
+
+.menu-section {
+    margin-top: 17px;
+}
+
+.menu-section h3 {
+    margin: 0 0 8px;
+
+    color: #8e998f;
+
+    font-size: 11px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+}
+
+.stat-row {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 12px;
+}
+
+.stat-bar {
+    flex: 1;
+
+    height: 7px;
+
+    overflow: hidden;
+
+    background: #293029;
+
+    border-radius: 10px;
+}
+
+#health-bar {
+    width: 100%;
+    height: 100%;
+
+    background: #6da66f;
+}
+
+#skills-container,
+#traits-container {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.skill-row {
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 6px 8px;
+
+    background: rgba(255,255,255,.04);
+
+    border-radius: 6px;
+
+    font-size: 11px;
+}
+
+.trait {
+    display: inline-block;
+
+    padding: 5px 7px;
+
+    margin: 2px;
+
+    background: rgba(255,255,255,.06);
+
+    border-radius: 6px;
+
+    font-size: 10px;
 }
 
 
 /* =========================
-   INICIO
+   MOVER
 ========================= */
 
-document.getElementById(
-    "colonist-count"
-).textContent = "1";
+#move-mode {
+    position: fixed;
+
+    top: 75px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    z-index: 1200;
+
+    padding: 10px 14px;
+
+    background: rgba(15,20,16,.95);
+
+    border:
+        1px solid rgba(255,255,255,.1);
+
+    border-radius: 10px;
+
+    font-size: 13px;
+}
+
+#cancel-move {
+    margin-left: 12px;
+
+    padding: 5px 9px;
+
+    border: 0;
+
+    border-radius: 6px;
+
+    background: #713d3d;
+
+    color: white;
+
+    cursor: pointer;
+}
+
+.move-marker {
+    position: absolute;
+
+    width: 30px;
+    height: 30px;
+
+    transform: translate(-50%, -50%);
+
+    border:
+        2px solid #f0d55c;
+
+    border-radius: 50%;
+
+    background: rgba(240,213,92,.15);
+
+    pointer-events: none;
+
+    z-index: 90;
+}
+
+.hidden {
+    display: none !important;
+}
 
 
-/* Mostrar nombre aleatorio */
+/* =========================
+   MÓVIL
+========================= */
 
-document.querySelector(
-    ".card-name"
-).textContent =
-    colonist.name;
+@media (max-width: 600px) {
 
-
-document.getElementById(
-    "menu-name"
-).textContent =
-    colonist.name;
-
-
-createTrees();
-
-
-updateColonistPosition();
-
-
-centerCameraOnColonist();
-
-
-chooseRandomTarget();
-
-
-setInterval(
-    updateTime,
-    1000
-);
-
-
-requestAnimationFrame(
-    gameLoop
-);
-
-
-window.addEventListener(
-    "resize",
-    function() {
-
-        centerCameraOnColonist();
-
-
-        if (
-            !colonistMenu.classList.contains(
-                "hidden"
-            )
-        ) {
-
-            positionColonistMenu();
-
-        }
-
+    #colonist-list {
+        left: 10px;
+        top: 78px;
     }
-);
+
+    .colonist-card {
+        width: 80px;
+    }
+
+    #card-avatar {
+        width: 66px;
+    }
+
+    #top-info {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+    }
+
+    #colony-info {
+        left: 10px;
+        bottom: 10px;
+    }
+
+    .info-item {
+        min-width: 85px;
+        padding: 7px;
+    }
+
+}
